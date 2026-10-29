@@ -31,8 +31,8 @@ loading, concurrent GPU use and compiler warm-up affect elapsed time.
 
 ## Tests and interface
 
-- 75 tests passed on the Windows Python 3.13 environment.
-- The packaged Linux runtime passed 74 tests, with one skipped test that needs a
+- 77 tests passed on the Windows Python 3.13 environment.
+- The packaged Linux runtime passed 76 tests, with one skipped test that needs a
   host Git executable. Tests cover chunk tails and swaps, silence, resampling,
   model hash rejection, source identity/tamper checks, arbitrary gain, API jobs,
   queue/residency conflicts, auth, invalid inputs, limits, settings and expiry.
@@ -64,8 +64,9 @@ by that script. CPU-only CI unit tests do not run the real checkpoints.
 ## Remaining qualification limits
 
 Quality on representative generated voices still needs listening comparisons.
-Only the short real speech fixture was used for model smoke checks; long inputs
-and speaker permutations have unit coverage, not a long-form listening study.
+Model checks used the short real speech fixture, including repeated input up to
+32 seconds for the [performance follow-up](performance.md). Long-input paths and
+speaker permutations have unit coverage, without a long-form listening study.
 Other GPUs, operating systems, architectures, multi-tenant isolation and sustained
 production load have not been qualified. The deployment is one shared instance
 with an optional shared API key, rather than a tenant-management product.

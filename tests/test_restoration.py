@@ -28,3 +28,29 @@ def test_asset_digest_rejects_changed_bytes(tmp_path, monkeypatch):
     (tmp_path / "decoder_cpu.pt").write_bytes(b"changed")
     with pytest.raises(ValueError, match="Checksum mismatch"):
         resolve_asset("decoder_cpu.pt", offline=True)
+
+
+@pytest.mark.parametrize("fail", [False, True])
+def test_export_execution_policy_does_not_leak_to_other_models(fail):
+    restorer = SidonRestorer.__new__(SidonRestorer)
+    restorer.device = torch.device("cpu")
+
+    def encoder(inputs):
+        assert not torch._C._get_graph_executor_optimize()
+        if fail:
+            raise RuntimeError("Export failed")
+        return {"last_hidden_state": torch.zeros(1, inputs.shape[1], 1024)}
+
+    def decoder(hidden):
+        assert not torch._C._get_graph_executor_optimize()
+        return torch.zeros(1, hidden.shape[-1] * 960)
+
+    restorer.encoder, restorer.decoder = encoder, decoder
+    with torch.jit.optimized_execution(True):
+        if fail:
+            with pytest.raises(RuntimeError, match="Export failed"):
+                restorer.enhance(np.sin(np.arange(1600) * .1), 16000)
+        else:
+            result, rate = restorer.enhance(np.sin(np.arange(1600) * .1), 16000)
+            assert rate == 48000 and len(result) == 4800 and np.isfinite(result).all()
+        assert torch._C._get_graph_executor_optimize()

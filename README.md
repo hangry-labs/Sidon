@@ -110,6 +110,9 @@ uv run --locked sidon-separate --input dialogue.wav --output-dir separated
 
 Its output folders contain two float WAVs and `run.json`. It rejects existing output folders. See [separation details](docs/mossformer-runtime.md) and [validation notes](docs/validation.md).
 
+For cold/warm latency measurements and the audio.cpp implementation comparison,
+see [performance notes](docs/performance.md).
+
 ## Privacy, attribution and licenses
 
 Processing runs on your server. The full image's core UI and inference work without an external network. Tiny images contact Hugging Face to download weights. Audio and results are kept in the server data volume until deletion or expiry; expiry runs at startup and about once per minute. Deleting a job removes its server files, but not copies already downloaded by a client. Browser input files stay in page memory until the page closes.

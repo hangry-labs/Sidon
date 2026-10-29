@@ -2,7 +2,7 @@
 import {Player} from './player.js';
 const $ = s => document.querySelector(s);
 let apiKey = '', view = 'enhance', file = null, activeJob = null, running = false, gpuBusy = false, lastStatus = null;
-let outputPlayers = [], pollTimer, gpuTimer;
+let outputPlayers = [], pollTimer, gpuTimer, pollingStarted = 0;
 const message = (text, error = false) => { for (const selector of ['#job-status', '#system-status']) { $(selector).textContent = text; $(selector).dataset.tone = error ? 'error' : ''; } };
 async function request(url, options = {}) {
   const response = await fetch(url, {...options, headers: {...options.headers, ...(apiKey ? {Authorization: `Bearer ${apiKey}`} : {})}});
@@ -85,14 +85,14 @@ async function showResults(job) {
   }
   $('#download-all').disabled = $('#delete').disabled = false;
 }
-function setRunning(value) { running = value; $('#process').disabled = value || !file; $('#choose').disabled = $('#mode').disabled = $('#strength').disabled = $('#output-format').disabled = value; }
+function setRunning(value) { if (value && !running) pollingStarted = performance.now(); running = value; $('#process').disabled = value || !file; $('#choose').disabled = $('#mode').disabled = $('#strength').disabled = $('#output-format').disabled = value; }
 async function pollJob() {
   clearTimeout(pollTimer); if (!activeJob) return;
   try {
     const job = await json(`/api/jobs/${activeJob}`); message(job.status === 'failed' ? job.error : job.status === 'done' ? 'Loading result audio…' : `${job.stage}…`, job.status === 'failed');
     if (job.status === 'done') { setRunning(true); await showResults(job); setRunning(false); message(`Complete · ${job.elapsed_seconds}s`); await refreshStatus(); }
     else if (job.status === 'failed') { setRunning(false); $('#delete').disabled = false; await refreshStatus(); }
-    else pollTimer = setTimeout(pollJob, 1000);
+    else pollTimer = setTimeout(pollJob, performance.now() - pollingStarted < 10000 ? 250 : 1000);
   } catch (error) { message(`${error.message} Retrying job status…`, true); pollTimer = setTimeout(pollJob, 4000); }
 }
 $('#process').onclick = guarded(async () => {

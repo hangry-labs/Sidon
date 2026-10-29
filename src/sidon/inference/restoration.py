@@ -60,8 +60,14 @@ class SidonRestorer:
             length = min(window, wave.numel() - start)
             # The export needs right context, as in the publisher's demo.
             chunk = F.pad(wave[start:start + length], (0, 24000))
-            encoded = self.encoder(features(F.pad(chunk, (160, 160))).to(self.device))["last_hidden_state"]
-            output = self.decoder(encoded.transpose(1, 2)).reshape(-1)[:-960].float().cpu()
+            inputs = features(F.pad(chunk, (160, 160))).to(self.device)
+            # These publisher exports are already frozen. The profiling executor
+            # otherwise spends seconds optimizing early calls and new lengths,
+            # while the actual forward takes milliseconds. Keep the policy local
+            # to these calls so other models retain their own execution settings.
+            with torch.jit.optimized_execution(False):
+                encoded = self.encoder(inputs)["last_hidden_state"]
+                output = self.decoder(encoded.transpose(1, 2)).reshape(-1)[:-960].float().cpu()
             if output.numel() < length * 3:
                 raise RuntimeError("Restoration export returned too little audio")
             output = output[:length * 3] * (peak / 0.9)
