@@ -25,6 +25,14 @@ it is a summary. Complete collected binary notices are in each image at
 
 ## Studio additions
 
+The optimized F32 restoration tensor bindings adapt the Sidon converter from
+audio.cpp revision `1f5dc02257379b790fae9f3a0e0d28065d9baf2f`, copyright 2026
+ShugoAI LLC, Apache-2.0. Its original notice and license are retained in
+`licenses/audio.cpp-Apache-2.0.txt`. This fork folds adapters in memory, retains
+fused QKV projections, rewrites relative attention using PyTorch, and uses its own
+F32 Triton activation kernel. The released Sidon model architecture and weights
+retain their MIT grant. No other audio.cpp model family is imported.
+
 The UI shell, GPU monitor and image/source publication helpers are adapted from
 Hangry Labs faster-qwen3-tts-studio. The original MIT notice is retained in
 `licenses/faster-qwen-upstream-MIT.txt`. Lucide icon font notices are distributed

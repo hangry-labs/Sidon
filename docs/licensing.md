@@ -14,6 +14,7 @@ does not replace third-party terms.
 | MossFormer2 SS weights | Publisher-declared Apache-2.0; revision 407cb030cd66340918ebb6c8cc63b18f8592cdbe, licenses/MossFormer2-MODEL-CARD.md |
 | UI shell, GPU monitor, packaging/publication helpers | Adapted from faster-qwen3-tts-studio, MIT; licenses/faster-qwen-upstream-MIT.txt |
 | Lucide icon subset | Complete packaged vendor/lucide/LICENSE retained, including applicable upstream notices |
+| Optimized restoration tensor bindings | Adapted from audio.cpp Sidon converter, revision 1f5dc02257379b790fae9f3a0e0d28065d9baf2f, Apache-2.0; licenses/audio.cpp-Apache-2.0.txt |
 
 The package's aggregate source expression is **Apache-2.0 AND MIT AND ISC**. Model binaries
 are baked into the full Docker image or downloaded by the tiny image; they are
@@ -48,6 +49,11 @@ terms. NVIDIA CUDA libraries use their own redistribution agreements; Intel oneM
 uses the Intel Simplified Software License, reproduced in THIRD_PARTY_NOTICES.md.
 These are not collectively Apache-licensed containers. Commercial use is subject
 to the component terms, including notice/source obligations where applicable.
+
+The optimized runtime includes GCC and C development headers for Triton's local
+launcher compilation. Their Debian notices and exact corresponding sources are
+collected with the other runtime packages. The custom activation kernel is this
+project's Apache-2.0 code; it does not contain model weights or training code.
 
 The `sources` image contains matching Debian source packages (including patches),
 reviewed wheel-bundled native component sources and build recipes. Collection

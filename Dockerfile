@@ -10,14 +10,20 @@ WORKDIR /app
 COPY requirements.runtime.txt ./
 RUN python -m pip install --only-binary=:all: --require-hashes -r requirements.runtime.txt
 
-FROM dependencies AS model-assets
+FROM dependencies AS kernel-runtime
+# Triton's CUDA launcher builds a small local helper. Its compiler and headers
+# are inventoried with the runtime and covered by the matching source image.
+RUN apt-get update && apt-get install -y --no-install-recommends gcc libc6-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+FROM kernel-runtime AS model-assets
 COPY scripts/prefetch_models.py ./scripts/
 COPY src/sidon/__init__.py ./src/sidon/
 COPY src/sidon/inference/__init__.py src/sidon/inference/assets.py ./src/sidon/inference/
 RUN --mount=type=cache,target=/root/.cache/huggingface \
     HF_HOME=/root/.cache/huggingface python -u scripts/prefetch_models.py /app/baked-models
 
-FROM dependencies AS app
+FROM kernel-runtime AS app
 COPY pyproject.toml README.md VERSION LICENSE RUNTIME_NOTICES.md THIRD_PARTY_NOTICES.md ./
 COPY licenses/ ./licenses/
 COPY src/ ./src/
@@ -37,6 +43,7 @@ LABEL org.opencontainers.image.source="https://github.com/hangry-labs/Sidon" \
     org.opencontainers.image.version="${IMAGE_VERSION}" \
     app.hangrylabs.sources="${SOURCE_IMAGE}"
 EXPOSE 7868
+ENV TRITON_CACHE_DIR=/app/persistent/triton
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s CMD ["python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:7868/healthz',timeout=3)"]
 CMD ["python", "-m", "sidon.web.app"]
 
@@ -53,7 +60,7 @@ LABEL org.opencontainers.image.source="https://github.com/hangry-labs/Sidon" \
     org.opencontainers.image.revision="${VCS_REF}" \
     org.opencontainers.image.version="${IMAGE_VERSION}" \
     app.hangrylabs.sources="${SOURCE_IMAGE}"
-ENV SIDON_MODEL_DIR=/app/baked-models HF_HUB_OFFLINE=1
+ENV SIDON_MODEL_DIR=/app/baked-models HF_HUB_OFFLINE=1 TRITON_CACHE_DIR=/app/persistent/triton
 EXPOSE 7868
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s CMD ["python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:7868/healthz',timeout=3)"]
 CMD ["python", "-m", "sidon.web.app"]

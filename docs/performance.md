@@ -90,3 +90,75 @@ Or copy the script and an authorized audio file into the image and run it there.
 Use `--device cpu` for CPU measurements. Start a fresh process to measure the first
 forward, and compare later calls separately. The script reports load time and
 individual stage times; it does not retain input/output audio in its JSON report.
+
+## Folded encoder and fused vocoder follow-up
+
+The optimized CUDA path now implements the useful audio.cpp-style transformations
+inside the existing PyTorch service. It binds only the pinned Sidon exports;
+there are no new models, training code, FP16 weights or quantized weights.
+
+- Sixteen LoRA output projections are folded once at load time.
+- The long-window encoder projects queries against the 73-entry relative-position
+  table before gathering attention bias. It uses fused QKV, SDPA and linear
+  pointwise encoder convolutions.
+- A custom F32 Triton kernel computes the vocoder's Snake activation in one
+  operation. Floating-point contraction is disabled to match the original
+  operation sequence. The fused kernel passed bit-exact CUDA tests across batches,
+  channels and partial blocks.
+- Vocoder pointwise-linear replacements, channels-last convolution and CUDA graph
+  capture were tested and left out: their costs did not justify a default change
+  on the qualified GPU.
+
+Forcing strict IEEE F32 everywhere was slower on the shortest clips. `auto`
+therefore keeps the reference encoder and original arithmetic below 512 latent
+frames (about 8.7 seconds of input with the current context padding). Longer
+windows use the folded encoder and strict F32 arithmetic. All windows use the
+fused vocoder activation. All tensors/weights remain F32; shorter windows retain
+the original cuDNN TF32 allowance. No precision flag is changed for other models.
+
+Five-run warmed medians, same RTX 5070 Ti and process, repeated speech fixture:
+
+| Input | Reference | Automatic optimized | Speedup |
+| --- | --- | --- | --- |
+| 4.825 s | 73.96 ms | 59.38 ms | 1.25× |
+| 8 s | 95.57 ms | 74.12 ms | 1.29× |
+| 9 s | 114.60 ms | 92.52 ms | 1.24× |
+| 16 s | 172.58 ms | 144.51 ms | 1.19× |
+| 32 s | 381.23 ms | 325.87 ms | 1.17× |
+
+Short-window outputs were bit-identical to the reference on tested speech and TTS
+clips. Longer/mixed windows measured 90–95 dB SNR against the unchanged TorchScript
+operations under the same per-window precision policy; maximum absolute error
+was below 0.000055 on the repeated fixture. A separate forced strict-F32 check
+also passed. These are numerical parity checks, not a new perceptual quality
+benchmark. Performance varies with GPU clocks, input and concurrent workloads.
+
+The previous production path allowed TF32 convolution arithmetic. Comparing its
+long-window outputs directly with the new default measured 45–48 dB SNR, with
+maximum absolute differences up to 0.0112 on the repeated fixture. This is distinct
+from implementation parity under matched arithmetic. Strict F32 avoids reduced
+mantissa arithmetic, but these measurements alone do not establish perceptual
+equivalence on generated voices. The comparison report includes both references;
+`torchscript` remains available for listening comparisons with previous behavior.
+
+The adaptive encoder shares unchanged weights with the reference but retains
+about 256 MiB of additional folded matrices. Some working allocations increase on
+short windows and decrease on long windows, so this is not a total-VRAM reduction
+claim. The first model load also compiles a small activation/launcher kernel;
+`/app/persistent/triton` caches it for later loads. Input lengths and channel counts
+are runtime parameters, so each new clip length does not trigger recompilation.
+
+`SIDON_RESTORATION_BACKEND=auto` selects this path on supported Linux CUDA hosts
+with Triton and a C compiler, falling back to the exports if unavailable.
+`torchscript` forces the previous path. `native` forces the folded encoder and
+strict F32 for every window; it can be slower on short inputs. CPU and unsupported
+platforms keep the reference path.
+
+```bash
+uv run --locked python scripts/compare_restoration.py --input voice.wav --seconds 4.4 4.825 8 9 16 32 --repeat 5 --report comparison.json
+```
+
+Use `--candidate native` to compare forced strict F32. The script gates parity at
+80 dB SNR and 0.001 maximum absolute error, measures resident processing separately
+from loading, and reports extra working allocations separately from resident
+weights. Run it inside the qualified Docker environment when the host lacks Triton.

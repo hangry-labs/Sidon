@@ -7,6 +7,9 @@ Local voice restoration and two-speaker separation, with a browser studio and au
 - **Split, then enhance:** restore both separated tracks at 48 kHz.
 - Compare waveform players; download float WAV or 24-bit FLAC, individual tracks or a ZIP.
 - System controls model residency, persisted defaults and live GPU telemetry.
+- Supported CUDA hosts automatically use the optimized F32 restoration path, with
+  a fused vocoder activation and a folded encoder for longer windows. The first
+  model load builds a small local kernel; the volume retains its cache.
 
 ![Sidon studio](https://raw.githubusercontent.com/hangry-labs/Sidon/main/docs/assets/studio.webp)
 

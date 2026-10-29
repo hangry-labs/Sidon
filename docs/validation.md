@@ -31,9 +31,13 @@ loading, concurrent GPU use and compiler warm-up affect elapsed time.
 
 ## Tests and interface
 
-- 77 tests passed on the Windows Python 3.13 environment.
-- The packaged Linux runtime passed 76 tests, with one skipped test that needs a
-  host Git executable. Tests cover chunk tails and swaps, silence, resampling,
+- 86 tests passed on the Windows Python 3.13 environment, with four CUDA/Triton
+  kernel cases skipped because the native Windows environment lacks Triton.
+- All 13 native-backend tests passed separately in the Linux GPU container,
+  including four bit-exact fused-kernel cases and initialization fallback checks.
+- The packaged Linux CPU runtime passed 85 tests, with five skips (four GPU kernel
+  cases and one test needing Git). The kernel cases are separately exercised in
+  the GPU container. Tests cover chunk tails and swaps, silence, resampling,
   model hash rejection, source identity/tamper checks, arbitrary gain, API jobs,
   queue/residency conflicts, auth, invalid inputs, limits, settings and expiry.
 - The Linux hash lock was checked against its input pins; wheel and sdist built.
@@ -45,12 +49,16 @@ loading, concurrent GPU use and compiler warm-up affect elapsed time.
 
 ## Distribution evidence
 
-The runtime collector records 66 Python distributions and 96 Debian packages,
+The runtime collector records 66 Python distributions and 131 Debian packages,
 with no missing-notice flags. Metadata omissions were checked against included
 license texts; notably pathspec's MPL-2.0 notice is supplied with its matching
 source despite its empty license metadata. The source target checks exact Debian
 source identities and reviewed wheel native hashes, downloads matching sources,
 and verifies sizes and SHA256 values before marking its manifest complete.
+
+The optimized image's source manifest contains 255 verified files, including
+the compiler/header sources needed for the local Triton launcher. Original
+audio.cpp conversion attribution is retained alongside the other source notices.
 
 The qualified wheel-source policy covers torch, numpy, scipy, soundfile, certifi,
 tqdm and pathspec. Original notices and the Intel oneMKL supplemental notice are

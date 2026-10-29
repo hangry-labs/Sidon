@@ -177,7 +177,10 @@ class Runtime:
                     clipped = int(np.count_nonzero(np.abs(data) > 1))
                     sf.write(directory / filename, data, source_rate, subtype="FLOAT" if options["output_format"] == "wav" else "PCM_24")
                     outputs.append(dict(name=name, file=filename, sample_rate=source_rate, duration=len(data) / source_rate, samples_over_full_scale=clipped))
-                self.update(job_id, stage="Packaging results", outputs=outputs, elapsed_seconds=round(time.monotonic() - started, 3))
+                used = ["enhance"] if job["mode"] == "enhance" else ["separate"] if job["mode"] == "separate" else ["separate", "enhance"]
+                backends = {name: getattr(self.models[name], "backend", "torch-fp32") for name in used}
+                self.update(job_id, stage="Packaging results", outputs=outputs, backends=backends,
+                            runtime_version=__version__, elapsed_seconds=round(time.monotonic() - started, 3))
                 # An archive is finalized before the job becomes downloadable.
                 with zipfile.ZipFile(directory / "results.zip", "w", compression=zipfile.ZIP_STORED) as archive:
                     archive.writestr("run.json", json.dumps({**self.jobs[job_id], "status": "done", "stage": "Complete"}, indent=2))
@@ -263,6 +266,7 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
     def status():
         return dict(version=__version__, device=("cuda:0" if torch.cuda.is_available() else "cpu") if runtime.device == "auto" else runtime.device,
                     models=dict(runtime.model_states), model_errors=dict(runtime.model_errors), busy=runtime.model_lock.locked(),
+                    backends={name: getattr(model, "backend", "torch-fp32") for name, model in dict(runtime.models).items()},
                     limits=dict(upload_mb=runtime.max_bytes // 1024**2, audio_seconds=runtime.max_seconds, retention_hours=runtime.retention / 3600),
                     settings=runtime.settings.model_dump(), modes=["enhance", "separate", "separate_enhance"])
 

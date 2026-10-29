@@ -12,6 +12,7 @@ license = "Apache-2.0 AND MIT AND ISC"
 license-files = ["LICENSE", "licenses/*", "src/sidon/web/static/vendor/lucide/LICENSE"]
 dependencies = [
     "torch==2.10.0",
+    "triton==3.6.0; sys_platform == 'linux' and platform_machine == 'x86_64'",
     "torchaudio==2.10.0",
     "numpy==2.5.4",
     "scipy==1.18.1",

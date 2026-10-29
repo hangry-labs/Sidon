@@ -45,6 +45,7 @@ def test_processing_download_and_delete(tmp_path, mode, tracks, rate):
         assert response.status_code == 202, response.text
         job = wait_job(client, response.json()["id"])
         assert job["status"] == "done", job
+        assert set(job["backends"]) == ({"enhance"} if mode == "enhance" else {"separate"} if mode == "separate" else {"separate", "enhance"})
         assert len(job["outputs"]) == tracks
         for track in job["outputs"]:
             data, sr = sf.read(io.BytesIO(client.get(f"/api/jobs/{job['id']}/files/{track['file']}").content))

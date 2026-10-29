@@ -2,6 +2,8 @@
 
 # Sidon
 
+Development snapshot for **v0.1.0**. See the [version history](#version-history).
+
 Restore noisy or degraded speech, split a two-speaker mixture, and listen to the results in a local Hangry Labs studio. One Docker container serves the browser UI, audio-job API and models.
 
 This is an inference-focused fork of [sarulab-speech/Sidon](https://github.com/sarulab-speech/Sidon). It uses Sidon's single-speaker restoration exports and Apache-licensed MossFormer2 for separation. Training and dataset preparation are outside this product's scope.
@@ -16,6 +18,12 @@ docker run -d --name sidon --gpus all -p 127.0.0.1:7868:7868 -v sidon_data:/app/
 ```
 
 Open **http://localhost:7868**. NVIDIA GPU support requires a compatible host driver and NVIDIA container support. The image targets **Linux x86-64, Python 3.13 and CUDA 12.8 / PyTorch 2.10**. It can also run on CPU: omit `--gpus all` and add `-e SIDON_DEVICE=cpu`. CPU processing is slower.
+
+On supported CUDA systems, automatic restoration selects an optimized F32 path:
+a fused vocoder activation for all clips, plus a folded encoder and strict F32
+math for longer windows. Shorter windows preserve the reference encoder and
+arithmetic. CPU and unsupported hosts use the original TorchScript exports.
+The first optimized load compiles a small kernel; the data volume retains it.
 
 Or use `docker compose up -d --build`. The supplied Compose configuration requests a GPU and binds the UI to localhost.
 
@@ -70,6 +78,9 @@ curl -X DELETE http://localhost:7868/api/jobs/JOB_ID
 
 Submission returns HTTP 202 with an `id`. Poll until `status` is `done` or `failed`. Completed jobs list each track's filename, sample rate, duration and count of samples above full scale. Use `mode=separate` or `mode=separate_enhance` for the other workflows. Defaults are read when a job is submitted.
 
+Completed jobs and ZIP manifests also record the selected inference backends and
+runtime version, so results can be traced to the processing path used.
+
 Discovery: `GET /healthz`, `GET /api/status`, `GET /api/jobs`, and `/openapi.json`. Persist defaults with `PUT /api/settings`. Manage residency with `POST /api/models/enhance` or `/api/models/separate` and JSON `{"action":"load"}` or `{"action":"unload"}`. GPU telemetry is `/api/gpu`. The UI's API tab has the same examples.
 
 When `SIDON_API_KEY` is set, all `/api/*` requests require `Authorization: Bearer YOUR_KEY`; enter it in System for browser use. Health, static assets and the API schema remain public. All authorized clients of an instance share its jobs and settings. For hosted workloads, isolate tenants in separate instances and place TLS/access controls at your reverse proxy.
@@ -79,10 +90,12 @@ When `SIDON_API_KEY` is set, all `/api/*` requests require `Authorization: Beare
 | Variable | Default | Purpose |
 | --- | --- | --- |
 | `SIDON_DEVICE` | `auto` | CUDA when available, otherwise CPU; explicit `cpu` or logical `cuda:0` |
+| `SIDON_RESTORATION_BACKEND` | `auto` | Adaptive optimized CUDA path when supported; `torchscript` forces reference, `native` forces strict F32 native execution on all windows |
 | `SIDON_HOST` | `127.0.0.1` locally; `0.0.0.0` in Docker | Server bind address |
 | `SIDON_PORT` | `7868` | HTTP port; update mapping and healthcheck if changed |
 | `SIDON_DATA_DIR` | `/app/persistent/studio` in Docker | Defaults and retained audio jobs |
 | `HF_HOME` | `/app/persistent/huggingface` in Docker | Tiny-image model cache |
+| `TRITON_CACHE_DIR` | `/app/persistent/triton` in Docker | Compiled activation/launcher cache; contains no audio |
 | `SIDON_MODEL_DIR` | `/app/baked-models` in full image | Verified baked model assets |
 | `HF_HUB_OFFLINE` | full `1`, tiny `0` | Disallow or allow model downloads |
 | `SIDON_MAX_UPLOAD_MB` | `100` | Maximum file size |
@@ -112,6 +125,59 @@ Its output folders contain two float WAVs and `run.json`. It rejects existing ou
 
 For cold/warm latency measurements and the audio.cpp implementation comparison,
 see [performance notes](docs/performance.md).
+
+## Version History
+
+<details open markdown="1">
+<summary><strong>v0.1.0 development notes</strong></summary>
+
+### v0.1.0 (development)
+
+Initial Hangry Labs studio development, with Python package version `0.1.0`.
+Rolling `latest` and `latest_tiny` images follow `main` after successful
+publication. Stable release tags remain immutable. The snapshot label describes
+development status; it is not a Docker tag.
+
+The following commands use the configured publication targets. Until a successful
+publication run is available, use the [local build commands](#run-locally).
+
+**Rolling full image**
+
+```bash
+docker run -d --name sidon --restart unless-stopped --gpus all -p 127.0.0.1:7868:7868 -v sidon_data:/app/persistent hangrylabs/sidon:latest
+```
+
+**Rolling tiny image**
+
+```bash
+docker run -d --name sidon --restart unless-stopped --gpus all -p 127.0.0.1:7868:7868 -v sidon_data:/app/persistent hangrylabs/sidon:latest_tiny
+```
+
+Choose full or tiny and reuse the same persistent volume when replacing the
+container. Full includes all pinned weights; tiny downloads them on first use.
+For GHCR, replace `hangrylabs/sidon` with `ghcr.io/hangry-labs/sidon`.
+Matching rolling sources use `latest_sources`; see [source extraction and
+rebuilding](docs/docker-packaging.md). Published stable versions will be recorded
+here with their source tags and verified full, tiny and source OCI index digests.
+
+- Focus the fork on inference: remove training and dataset-preparation code and
+  replace the noncommercial DialogueSidon dependency with MossFormer2 separation.
+- Provide single-voice enhancement, two-speaker separation and separation followed
+  by enhancement through the browser studio and audio-job API.
+- Add original/result waveform players, float WAV and 24-bit FLAC downloads,
+  ZIP manifests, retained-job history, model residency controls and GPU telemetry.
+- Package Python 3.13, PyTorch 2.10 and CUDA 12.8 with locked runtime dependencies,
+  checksum-verified model assets, full/tiny images and matching source images.
+- Preserve component notices and corresponding sources alongside Apache-2.0
+  project contributions and retained upstream licenses.
+- Avoid repeated TorchScript optimization stalls and shorten job-status polling
+  for fast requests. Add adaptive CUDA restoration with folded LoRA projections,
+  projected relative attention and a fused F32 vocoder activation. See the
+  [measurements and precision tradeoffs](docs/performance.md).
+- Persist model and compiled-kernel caches, settings and retained audio through
+  one volume; record runtime versions and selected backends in job manifests.
+
+</details>
 
 ## Privacy, attribution and licenses
 

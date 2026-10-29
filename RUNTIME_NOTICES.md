@@ -109,3 +109,24 @@ The separation wrapper now follows upstream active-region input normalization
 and whole-track output RMS calibration. Raw model gain is not a usable playback
 level. Each separated track is matched to mixture RMS, not an estimate of the
 original speaker's loudness; no peak limiter is applied.
+
+## Optimized F32 restoration
+
+On supported Linux CUDA systems, restoration can bind the pinned exports into
+an inference-only PyTorch implementation. The automatic path preserves the
+reference encoder/arithmetic for shorter windows and uses a folded encoder with
+strict F32 math for windows of at least 512 latent frames. All windows use a fused
+F32 Snake activation in the vocoder. The folded encoder merges 16 LoRA branches
+once at model load and projects relative-position embeddings before gathering
+attention bias. Weights, normalization, chunking and output rates are preserved.
+
+Tensor bindings adapt audio.cpp's Sidon converter at revision
+`1f5dc02257379b790fae9f3a0e0d28065d9baf2f`, copyright 2026 ShugoAI LLC,
+Apache-2.0; its complete notice is in `licenses/audio.cpp-Apache-2.0.txt`.
+The original TorchScript path remains available, including CPU and unsupported
+platform fallback. Forced `native` mode uses strict IEEE F32 for every window.
+Precision flags are restored afterwards; service inference is serialized.
+
+Triton uses the installed C compiler for a local launcher. Compiler/header notices
+and corresponding source are included with the image's dependency records.
+Cached kernels contain compiled program code, not audio.

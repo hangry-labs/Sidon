@@ -12,6 +12,11 @@ docker buildx build --target evidence --output type=local,dest=build-evidence .
 
 Both product targets use the same hashed CPython 3.13 / Linux x86-64 runtime and pinned Python base digest. Only needed audio libraries are added; FFmpeg is not part of this image. The baked target verifies every downloaded asset against `sidon.inference.assets.ASSETS` and retains `/app/baked-models/manifest.json`. Baked weights are outside the data volume and remain available when a fresh volume is attached.
 
+The optimized CUDA runtime includes GCC and C headers to build Triton's small
+launcher locally. `/app/persistent/triton` caches compiled kernels. No external
+download is required for compilation, including on a fresh offline volume.
+`SIDON_RESTORATION_BACKEND=torchscript` selects the reference restoration path.
+
 `/app/licenses/runtime/inventory.json` records actual installed Python and Debian packages, their notices and bundled native-file hashes. `runtime-constraints.txt` records exact Python package versions. Supplemental notices for wheel omissions live in `THIRD_PARTY_NOTICES.md`.
 
 The source target resolves exact Debian source versions from signed apt indexes and matches reviewed wheel native hashes to `scripts/runtime_sources.toml`. Missing notices, changed native hashes, unreviewed copyleft packages or unavailable matching sources fail the build. Downloaded source archives are size/hash checked. The image includes source packages, patches/build recipes, notices, a manifest and SHA256SUMS under `/sources`.

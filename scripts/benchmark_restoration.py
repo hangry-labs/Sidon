@@ -16,6 +16,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--input", type=Path, required=True)
     parser.add_argument("--device", default="auto")
+    parser.add_argument("--backend", choices=["auto", "native", "torchscript"], default="auto")
     parser.add_argument("--repeat", type=int, default=3)
     parser.add_argument("--seconds", type=float, nargs="+", help="Repeat/truncate the input to test these lengths; default: original length")
     parser.add_argument("--report", type=Path)
@@ -27,7 +28,7 @@ def main():
     if not audio.size:
         parser.error("The input audio is empty")
     start = time.perf_counter()
-    model = restoration.SidonRestorer(args.device)
+    model = restoration.SidonRestorer(args.device, backend=args.backend)
     load_seconds = time.perf_counter() - start
     use_cuda = model.device.type == "cuda"
 
@@ -71,6 +72,7 @@ def main():
             runs.append(row)
             print(json.dumps(row), flush=True)
     report = dict(python=platform.python_version(), torch=torch.__version__,
+                  backend=model.backend,
                   device=str(model.device), threads=torch.get_num_threads(),
                   gpu=torch.cuda.get_device_name(model.device) if use_cuda else None,
                   load_seconds=load_seconds, runs=runs)

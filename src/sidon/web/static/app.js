@@ -68,7 +68,7 @@ async function refreshStatus(applyDefaults = false) {
   for (const [name, status] of Object.entries(state.models)) {
     const row = document.createElement('div'); row.className = 'model-row';
     const label = document.createElement('div'), title = document.createElement('strong'), detail = document.createElement('small');
-    title.textContent = name === 'enhance' ? 'Sidon · restoration' : 'MossFormer2 · two speakers'; detail.textContent = state.model_errors[name] || status;
+    title.textContent = name === 'enhance' ? 'Sidon · restoration' : 'MossFormer2 · two speakers'; detail.textContent = state.model_errors[name] || `${status}${name === 'enhance' && state.backends?.[name] ? (state.backends[name] !== 'torchscript-fp32' ? ' · Optimized F32' : ' · Reference F32') : ''}`;
     label.append(title, detail); const button = document.createElement('button'); button.className = 'secondary-button'; button.textContent = status === 'ready' ? 'Unload' : status === 'loading' ? 'Loading…' : 'Load'; button.disabled = state.busy;
     button.onclick = guarded(async () => { button.disabled = true; button.textContent = status === 'ready' ? 'Unloading…' : 'Loading…'; try { await json(`/api/models/${name}`, {method: 'POST', ...jsonOptions({action: status === 'ready' ? 'unload' : 'load'})}); } finally { await refreshStatus(); } });
     row.append(label, button); models.append(row);
