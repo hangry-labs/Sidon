@@ -1,251 +1,82 @@
 # Sidon
-[![Sidon arXiv](https://img.shields.io/badge/Sidon-arXiv%202509.17052-b31b1b.svg)](https://arxiv.org/abs/2509.17052)
-[![DialogueSidon arXiv](https://img.shields.io/badge/DialogueSidon-arXiv%202604.09344-b31b1b.svg)](https://arxiv.org/abs/2604.09344)
-[![Sidon Gradio Demo](https://img.shields.io/badge/Sidon-Gradio%20demo-orange.svg)](https://huggingface.co/spaces/sarulab-speech/sidon_demo_beta)
-[![DialogueSidon Gradio Demo](https://img.shields.io/badge/DialogueSidon-Gradio%20demo-orange.svg)](https://huggingface.co/spaces/sarulab-speech/DialogueSidon-demo)
-[![Hugging Face](https://img.shields.io/badge/Hugging%20Face-demo)](https://huggingface.co/spaces/Wataru/SidonSamples)
 
+An inference-focused audio project maintained by Hangry Labs. Our target is a
+local Docker application with baked-in model weights, a browser UI and APIs for
+restoring, converting and serving generated audio.
 
-Large-scale text-to-speech (TTS) systems are bottlenecked by the scarcity of clean, multilingual recordings. Sidon tackles this by pairing a fast, open-source speech restoration model with reproducible tooling so researchers can turn noisy in-the-wild corpora into studio-quality datasets that scale across dozens of languages.
+**Current milestone:** a tested two-speaker separation runtime using
+MossFormer2 SS, with reviewed source/model licenses. Docker, UI, serving APIs and
+single-speaker restoration are subsequent work; they are not implemented yet.
 
-Sidon consists of two stages: a w2v-BERT 2.0 feature predictor finetuned to cleanse representations from degraded speech, and a vocoder trained to synthesise restored waveforms from those features. The stack achieves restoration quality comparable to Miipher—Google's internal speech restoration pipeline—while running up to 500× faster than real time on a single GPU. We also observe that training downstream TTS models on Sidon-cleansed automatic speech recognition corpora improves zero-shot synthesis quality. This repository releases the code, configs, and models needed to reproduce Sidon's dataset cleansing workflow for the community.
+## Run separation
 
-This repository ships two models:
-
-- **Sidon** ([arXiv:2509.17052](https://arxiv.org/abs/2509.17052)) — the
-  single-speaker speech restoration pipeline described above.
-- **DialogueSidon** ([arXiv:2604.09344](https://arxiv.org/abs/2604.09344)) — a
-  diffusion-based two-speaker dialogue separator that reuses the Sidon
-  backbone. See the [DialogueSidon section](#dialoguesidon--diffusion-based-dialogue-separation).
-
-## Requirements
-
-- Python 3.10+
-- Recent PyTorch / CUDA stack (tested with `torch>=2.8`, `torchaudio>=2.8`)
-- `uv` for dependency management (or an equivalent toolchain you are
-  comfortable with)
-
-Install project dependencies:
+Python 3.10+ and `uv` are required. Validation used Python 3.11.
 
 ```bash
-uv sync
+uv sync --python 3.11
+uv run sidon-separate --input dialogue.wav --output-dir separated
 ```
 
-If you rely on a different environment manager, replicate the dependencies
-listed in `pyproject.toml`.
-
-## Repository layout
-
-- `src/sidon/model/sidon/lightning_module.py` — Feature predictor, decoder, and
-  discriminator Lightning modules.
-- `src/sidon/data` — WebDataset helpers, preprocessing augmentations, and the
-  `PreprocessedDataModule` used for training.
-- `src/sidon/preprocess.py` — Parallel writer that turns augmented samples into
-  on-disk shards.
-- `config/` — Hydra configuration tree with defaults for preprocessing, data,
-  models, and trainer settings.
-- `scripts/` — Utility scripts plus PBS job templates for batch processing.
-
-## Preparing data
-
-Training consumes WebDataset shards that contain tensors expected by the
-`PreprocessedDataModule`:
-
-- `input_wav.pth` and `noisy_input_wav.pth` — paired clean / degraded waveforms
-  stored as 1D float tensors.
-- Optional SSL features (`ssl_inputs.pickle`, `noisy_ssl_inputs.pickle`) that
-  provide contextual embeddings for the model.
-- `sr.index` and other metadata entries produced by the preprocessing pipeline.
-
-Update `config/data/preprocessed.yaml` with the locations of your prepared
-shards. You can point the `train_urls` and `val_urls` entries at directories of
-`.tar` / `.tar.gz` files, or text manifests containing S3 URIs. Set `is_s3=true` to stream from object storage via the AWS CLI.
-
-## Generating preprocessed shards
-
-Use the Hydra-driven preprocessing entrypoint to convert raw WebDataset
-collections into the tensorised format described above.
-
-1. Choose the base configuration in `config/preprocess.yaml` (e.g.
-   `webdataset_preprocess_24k` or `webdataset_preprocess_48k`). These configs
-   reference the augmentation pipeline, SSL encoders, and noise sources defined
-   in `config/data/webdataset_preprocess_*.yaml`.
-2. Set output parameters in `config/preprocess/default.yaml` (target directory,
-   shard size, number of writer processes).
-3. Launch preprocessing locally:
-
-   ```bash
-   uv run python -m sidon.preprocess \
-     data=webdataset_preprocess_24k \
-     preprocess.writer_name=my_preprocessed_run
-   ```
-
-   Hydra creates run-specific subdirectories under `outputs/` and writes shards
-   into `${preprocess.output_root}/{writer_name}/{split}/{job_id}`.
-4. On PBS-based clusters, adapt the templates in `scripts/pbs/` (e.g.
-   `preprocess_24k.sh`) to submit distributed jobs. The scripts activate a local
-   virtual environment, set MPI-friendly environment variables, and forward
-   Hydra overrides to the preprocessing entrypoint.
-
-Utilities such as `scripts/summarise_shard_durations.py` can help audit the
-duration distribution of generated shards before training.
-
-## Training pipeline
-
-Sidon training runs in three sequential stages. Every invocation of
-`python -m sidon.train` resolves a Hydra config and writes artefacts under
-`outputs/<timestamped_run>/`.
-
-1. **Feature predictor pretraining** — LoRA-adapts the SSL encoder to denoise
-   representations before they are fed to the vocoder.
-
-   ```bash
-   uv run python -m sidon.train \
-     model=sidon_feature_predictor \
-     data=preprocessed
-   ```
-
-   The resulting checkpoint (e.g. `outputs/<run>/checkpoints/last.ckpt`) becomes
-   the `model.cfg.ssl_model_name` input for the finetuning stage.
-
-2. **Vocoder pretraining** — Trains the decoder and discriminator while the SSL
-   encoder remains frozen on clean features.
-
-   ```bash
-   uv run python -m sidon.train \
-     model=sidon_vocoder_pretrain \
-     data=preprocessed \
-     train=gan
-   ```
-
-   Capture the checkpoint path; it will be referenced as `model.cfg.pretrain_path`
-   during finetuning.
-
-3. **Vocoder finetuning** — Warm-starts from the pretraining weights and swaps
-   in the denoised SSL features predicted by the feature predictor.
-
-   ```bash
-   uv run python -m sidon.train \
-     model=sidon_vocoder_finetune \
-     data=preprocessed_48k \
-     train=gan \
-     model.cfg.ssl_model_name=/path/to/feature_predictor.ckpt \
-     model.cfg.pretrain_path=/path/to/vocoder_pretrain.ckpt
-   ```
-
-Adjust optimiser, scheduler, or trainer parameters via the files in
-`config/model/` and `config/train/`, and use `train.ckpt_path` to resume a run.
-The GAN stages (vocoder pretraining/finetuning, SSL-VAE) use manual
-optimization and must run with `train=gan`: under DDP, the `static_graph: true`
-of `train=default` would leave their gradients unsynchronized across GPUs.
-
-## DialogueSidon — diffusion-based dialogue separation
-
-Full-duplex dialogue audio, in which each speaker is recorded on a separate track, is an important resource for spoken dialogue research, but is difficult to collect at scale. Most in-the-wild two-speaker dialogue is available only as degraded monaural mixtures, making it unsuitable for systems requiring clean speaker-wise signals. We propose DialogueSidon, a model for joint restoration and separation of degraded monaural two-speaker dialogue audio. DialogueSidon combines a variational autoencoder (VAE) operates on the speech self-supervised learning (SSL) model feature, which compresses SSL model features into a compact latent space, with a diffusion-based latent predictor that recovers speaker-wise latent representations from the degraded mixture. Experiments on English, multilingual, and in-the-wild dialogue datasets show that DialogueSidon substantially improves intelligibility and separation quality over a baseline, while also achieving much faster inference.
-
-This repository implements DialogueSidon on top of the Sidon feature backbone:
-a diffusion transformer head predicts per-speaker latents over a frozen
-SSL-VAE, conditioned on features from a LoRA-adapted w2v-BERT encoder.
-
-### Architecture
-
-- **SSL encoder** — a LoRA-adapted `facebook/w2v-bert-2.0` student encodes the
-  noisy mixture into frame-level features.
-- **SSL-VAE** — a pretrained `SSLVAE` (loaded from `cfg.vae_checkpoint_path`)
-  provides the target latents; its weights are frozen during training.
-- **Conditioning heads** — two linear projections (`output_linear1`,
-  `output_linear2`) map SSL features to per-speaker VAE latents used as a
-  conditioning signal.
-- **Diffusion transformer head** — a DiT with AdaLN conditioning, RoPE
-  attention, and sinusoidal timestep embeddings predicts the noise (or `v`
-  target) for the concatenated two-speaker latents.
-- **DDPM training** — noise is sampled with a `DDPMScheduler`
-  (`prediction_type=v_prediction` by default, 1000 training timesteps). Speaker
-  assignment is resolved with Permutation-Invariant Training on the
-  conditioning heads.
-- **Latent normalisation** — running mean/std buffers are initialised from the
-  first training batch and re-used at inference to stabilise diffusion.
-
-The matching inference script is `infer.py` (not `infer_geneses.py`, which is
-reserved for the flow-matching GENESES separator).
-
-### Model variants
-
-Available under `config/model/`:
-
-| Config | Head hidden | Head layers | Heads | Notes |
-|---|---|---|---|---|
-| `diffusion_dialogue_sidon` | 768 | 8 | 12 | default |
-| `diffusion_dialogue_sidon_small` | 384 | 12 | 6 | small |
-| `diffusion_dialogue_sidon_xsmall` | 384 | 6 | 6 | xsmall |
-| `diffusion_dialogue_sidon_ac` | 768 | 8 | 12 | activation checkpointing |
-| `diffusion_dialogue_sidon_wo_diffusion_head` | — | — | — | baseline without diffusion head |
-| `diffusion_dialogue_sidon_wo_vae_latent` | 768 | 8 | 12 | ablation without VAE latent conditioning |
-| `diffusion_dialogue_sidon_decoder_finetune` | — | — | — | decoder finetuning stage |
-
-### Training
-
-DialogueSidon requires a pretrained **SSL-VAE** checkpoint. Train it first
-with `model=ssl_vae`, then pass the resulting checkpoint into the diffusion
-run via `model.cfg.vae_checkpoint_path`.
-
-1. **SSL-VAE pretraining** — learns the latent space that the diffusion head
-   will predict over.
-
-   ```bash
-   uv run python -m sidon.train \
-     model=ssl_vae \
-     data=dialogue_preprocessed \
-     train=gan
-   ```
-
-2. **Diffusion training** — point `model.cfg.vae_checkpoint_path` at the
-   SSL-VAE checkpoint from step 1.
-
-   ```bash
-   uv run python -m sidon.train \
-     model=diffusion_dialogue_sidon \
-     data=dialogue_preprocessed \
-     model.cfg.vae_checkpoint_path=/path/to/ssl_vae.ckpt
-   ```
-
-PBS templates for each variant are provided in
-`scripts/pbs/diffusion_dialogue_sidon*.sh`.
-
-### Inference
-
-`infer.py` runs chunked inference with overlap, resolves speaker permutation
-across chunks by cosine similarity in VAE latent space, concatenates the
-per-chunk latents, and performs a single VAE decode at the end.
+For a directory of WAV/FLAC files with a compatible CUDA-enabled PyTorch build:
 
 ```bash
-# Batch mode — directory of wav files
-python infer.py \
-  --checkpoint sidon/<run_id> \
-  --input-dir ./wavs \
-  --output-dir ./out \
-  --device cuda:0 \
-  --num-steps 30 \
-  --chunk-seconds 20 \
-  --overlap-seconds 5
-
-# Single audio or video file (replaces the audio track when given a video)
-python infer.py \
-  --checkpoint sidon/<run_id> \
-  --input-video input.mp4 \
-  --output-wav separated.wav \
-  --output-video output.mp4
+uv run sidon-separate --input-dir wavs --output-dir separated --device cuda
 ```
 
-Use `scripts/pbs/infer_dialogue.sh` to submit the same job on an `rt_QG` (single
-GPU) PBS queue.
+The first run downloads approximately 670 MB of pinned, checksum-verified model
+weights to the Hugging Face cache. Later runs can use `--offline`.
+`--device cpu` selects CPU inference. A local copy of the same audited checkpoint
+can be supplied with `--checkpoint`.
 
-## Validation and troubleshooting
+Each input produces `speaker_1.wav`, `speaker_2.wav` and `run.json` in its own
+output folder. Audio is downmixed, resampled to 16 kHz, and separated in overlapping
+windows with speaker-order matching and crossfades. Output folders are never
+overwritten. The WAV outputs use float32 samples to avoid PCM16 clipping.
 
-- Perform a quick syntax sweep with `python -m compileall src` before submitting
-  jobs.
-- Ensure CUDA kernels are available and match the Torch build; most sidon
-  experiments assume a GPU-backed environment.
-- If streaming from S3, check that the AWS CLI is installed and accessible in
-  your job environment.
-- The stack is ported from an internal codebase and only partially smoke-checked; if something breaks, please open an issue with details so we can follow up.
+Use `--chunk-seconds` and `--overlap-seconds` to adjust chunking. Speaker numbers
+are relative to the first window, not identified people; ambiguous or silent
+overlaps can still cause swaps. The model always returns two tracks.
+
+Separation is not a demonstrated replacement for speech restoration. We have
+not established perceptual improvements on our generated voices yet. See
+[runtime validation](docs/mossformer-runtime.md).
+
+## Licensing
+
+Our contributions use **Apache-2.0**, in [LICENSE](LICENSE). Retained upstream
+components have MIT/Apache terms, so the aggregate package expression is
+**Apache-2.0 AND MIT**. The pinned MossFormer2 weights are declared Apache-2.0 by
+their publisher.
+
+The training/data pipelines, old demo, restricted research implementations and
+their optional dependencies have been removed from the working source tree.
+Required notices for retained components are preserved. See the
+[source license review](docs/licensing.md), [third-party notices](THIRD_PARTY_NOTICES.md),
+[runtime notices](RUNTIME_NOTICES.md) and
+[dependency inventory](docs/runtime-dependency-licenses.tsv).
+
+Native dependencies retain their own terms, including LGPL and NVIDIA terms
+where applicable. The planned Docker image will need a separate review of its
+actual base image, binaries, baked weights and required notices/source provisions.
+Software licenses do not supply rights to input recordings or override the output
+terms of the models that generated them.
+
+## Development
+
+```bash
+uv run pytest
+uv build
+```
+
+The repository and build artifacts contain only the inference runtime, tests,
+documentation and required license/provenance records.
+
+## Attribution and contact
+
+- Original [Sidon project](https://github.com/sarulab-speech/Sidon), sarulab-speech;
+  its [MIT notice](licenses/Sidon-upstream-MIT.txt) is preserved.
+- [ClearerVoice-Studio](https://github.com/modelscope/ClearerVoice-Studio) and
+  [MossFormer2 SS weights](https://huggingface.co/alibabasglab/MossFormer2_SS_16K).
+- SpeechBrain and FLASH-pytorch, credited by the selected architecture.
+
+Project questions and privacy requests: [contact@hangrylabs.app](mailto:contact@hangrylabs.app).

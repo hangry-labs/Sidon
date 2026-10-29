@@ -1,41 +1,45 @@
 [project]
 name = "sidon"
 version = "0.1.0"
-description = "Add your description here"
+description = "Local two-speaker audio separation with MossFormer2"
 readme = "README.md"
 authors = [
     { name = "Wataru Nakata", email = "wataru9871@gmail.com" }
 ]
 requires-python = ">=3.10"
+license = "Apache-2.0 AND MIT"
+license-files = ["LICENSE", "licenses/Sidon-upstream-MIT.txt", "licenses/ClearerVoice-Apache-2.0.txt", "licenses/FLASH-MIT.txt", "licenses/SpeechBrain-Apache-2.0.txt", "licenses/MossFormer2-MODEL-CARD.md"]
 dependencies = [
-    "datasets==2.17.1",
-    "descript-audio-codec>=1.0.0",
-    "diffusers>=0.36.0",
-    "flash-attn>=2.8.3",
-    "flow-matching>=1.0.10",
-    "hydra-core>=1.3.2",
-    "lightning>=2.5.5",
-    "mmdit>=0.3.0",
-    "peft>=0.16.0",
-    "pyroomacoustics",
-    "ray[data]>=2.9.0",
-    "s3fs>=2023.9.0,<2023.11",
-    "silero-vad>=6.2.0",
-    "speechbrain>=1.0.3",
-    "torch>=2.8.0",
-    "torchaudio>=2.8.0",
-    "torchcodec>=0.7.0",
-    "transformers>=4.56.1",
-    "wandb>=0.18.7",
-    "webdataset>=0.2.100",
+    "torch==2.8.0",
+    "numpy==2.2.6",
+    "scipy==1.15.3",
+    "soundfile==0.13.1",
+    "einops==0.8.1",
+    "rotary-embedding-torch==0.8.3",
+    "huggingface-hub==0.36.0",
 ]
+
+[project.scripts]
+sidon-separate = "sidon.inference.cli:main"
 
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling>=1.27"]
 build-backend = "hatchling.build"
 
+# Package only the inference runtime and its required notices.
+[tool.hatch.build.targets.wheel]
+only-include = ["src/sidon/__init__.py", "src/sidon/inference"]
+sources = ["src"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"RUNTIME_NOTICES.md" = "sidon/inference/NOTICE.md"
+
+[tool.hatch.build.targets.sdist]
+only-include = ["src/sidon/__init__.py", "src/sidon/inference", "pyproject.toml", "README.md", "LICENSE", "RUNTIME_NOTICES.md", "THIRD_PARTY_NOTICES.md", "licenses/ClearerVoice-Apache-2.0.txt", "licenses/FLASH-MIT.txt", "licenses/SpeechBrain-Apache-2.0.txt", "docs", "tests/test_mossformer.py"]
+
 [dependency-groups]
-dev = [
-    "ipykernel>=6.30.1",
-    "jupyter>=1.1.1",
-]
+dev = ["pytest==8.4.2", "build>=1.3"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

@@ -1,0 +1,25 @@
+{
+  "revision": "6b3774dc79c46ae8bed2a4fa5f706f0ac8c75c61",
+  "files": [
+    {
+      "file": "mossformer2.py",
+      "source_sha256": "6be58cda520ac75a87b4d9b3ad19e5059efbe6bf007dc88cd98f91291d5740cf",
+      "source_url": "https://github.com/modelscope/ClearerVoice-Studio/blob/6b3774dc79c46ae8bed2a4fa5f706f0ac8c75c61/clearvoice/clearvoice/models/mossformer2_ss/mossformer2.py"
+    },
+    {
+      "file": "mossformer2_block.py",
+      "source_sha256": "45a914b9bc7457cc7c9e92536dacb76d038553d97444df00025d3622827cb5ad",
+      "source_url": "https://github.com/modelscope/ClearerVoice-Studio/blob/6b3774dc79c46ae8bed2a4fa5f706f0ac8c75c61/clearvoice/clearvoice/models/mossformer2_ss/mossformer2_block.py"
+    },
+    {
+      "file": "conv_module.py",
+      "source_sha256": "2141b0cc7b9797233b7a397bc0022261e01cf11c25c95c02a2e1a2c314a8bfd6",
+      "source_url": "https://github.com/modelscope/ClearerVoice-Studio/blob/6b3774dc79c46ae8bed2a4fa5f706f0ac8c75c61/clearvoice/clearvoice/models/mossformer2_ss/conv_module.py"
+    },
+    {
+      "file": "fsmn.py",
+      "source_sha256": "1c70cff98df7a9f75ee121bf83dd1a614785b3b6a08d54703404f530a2d1d00b",
+      "source_url": "https://github.com/modelscope/ClearerVoice-Studio/blob/6b3774dc79c46ae8bed2a4fa5f706f0ac8c75c61/clearvoice/clearvoice/models/mossformer2_ss/fsmn.py"
+    }
+  ]
+}
