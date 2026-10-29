@@ -1,8 +1,8 @@
 # Inference runtime notices
 
-The default Sidon wheel/source distribution includes only the new inference
-wrapper and the selected MossFormer2 SS architecture. Its source license
-expression is **Apache-2.0 AND MIT**. This fork's own contributions use
+The default Sidon wheel/source distribution includes the studio/API, restoration
+wrapper and selected MossFormer2 SS architecture. Its source license
+expression is **Apache-2.0 AND MIT AND ISC**. This fork's own contributions use
 Apache-2.0, as set out in the root `LICENSE`. Installed dependencies, CUDA libraries
 and separately downloaded model weights retain their own terms.
 
@@ -58,7 +58,7 @@ Checkpoint bytes are verified before loading; loading uses PyTorch's
 `weights_only=True` with strict parameter matching. Model weights are downloaded
 separately into the Hugging Face cache and are not embedded in the wheel/sdist.
 
-The planned Docker image will bake in this pinned asset for offline inference.
+The full Docker image bakes in this pinned asset for offline inference.
 Its distribution must include the model license and attribution alongside the
 application and dependency notices; see `docs/docker-packaging.md`.
 
@@ -76,3 +76,36 @@ The repository contains only the selected inference implementation. The upstream
 research code, old demo, training/data pipelines and experimental dependency
 group have been removed. See `docs/licensing.md` for the current source review
 and `docs/mossformer-runtime.md` for runtime validation.
+
+## Sidon restoration weights and feature preparation
+
+Publisher: sarulab-speech. Model repository `sarulab-speech/sidon-v0.1`,
+revision `b3b02d8bbd55fdbc410e6e46e76ef95ace4fbf52`, publisher-declared MIT.
+The pinned publisher card is preserved as `licenses/Sidon-MODEL-CARD.md`.
+The original Sidon MIT grant and attribution are in `licenses/Sidon-upstream-MIT.txt`.
+
+CPU and CUDA `feature_extractor_*.pt` / `decoder_*.pt` TorchScript exports are
+loaded directly, without training/model Python code or flow-matching. Exact
+file hashes are recorded in `sidon/inference/assets.py` and the baked image's
+model manifest; every asset is verified before loading. TorchScript is executable
+model content, so only the pinned, reviewed publisher exports are accepted.
+
+Feature preparation follows upstream Sidon's Kaldi-filterbank normalization and
+frame stacking under its MIT grant. This fork adds bounded overlapping inference,
+right context, silence handling, original-gain restoration and an optional dry/wet
+mix. These modifications are not claimed to reproduce the upstream demo exactly.
+Publisher model licenses are not independent guarantees about training provenance.
+
+## Studio and build helpers
+
+The shared shell/audio styles, GPU monitor, source/notice collectors and publication
+planner are adapted from faster-qwen3-tts-studio, MIT. Its complete original notice
+is retained in `licenses/faster-qwen-upstream-MIT.txt`. New Sidon integration uses
+Apache-2.0. The packaged Lucide subset carries its own complete license at
+`sidon/web/static/vendor/lucide/LICENSE`. See `THIRD_PARTY_NOTICES.md` for the
+supplemental Intel oneMKL notice and `docs/docker-packaging.md` for corresponding sources.
+
+The separation wrapper now follows upstream active-region input normalization
+and whole-track output RMS calibration. Raw model gain is not a usable playback
+level. Each separated track is matched to mixture RMS, not an estimate of the
+original speaker's loudness; no peak limiter is applied.

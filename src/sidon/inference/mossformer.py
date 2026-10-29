@@ -18,15 +18,31 @@ MODEL_SHA256 = "00a3a48bda492db1e829b85dd443f8f43a43039a3e90f1a24962ea9caf14a11a
 SAMPLE_RATE = 16_000
 
 
+def normalize_for_model(waveform: torch.Tensor) -> torch.Tensor:
+    """Use the upstream active-region -25 dB RMS operating level."""
+    power = waveform.square()
+    active = power[power > power.mean()]
+    rms = active.mean().sqrt() if active.numel() else power.mean().sqrt()
+    return waveform * (10 ** (-25 / 20) / rms.clamp_min(1e-8))
+
+
+def restore_source_levels(sources: torch.Tensor, reference: torch.Tensor) -> torch.Tensor:
+    """SI-SNR-trained outputs have arbitrary gain; match input RMS per track.
+
+    Apply one gain per complete track, rather than changing gain at chunk joins.
+    This follows upstream output scaling; it is not source loudness estimation.
+    """
+    target = reference.square().mean().sqrt()
+    levels = sources.square().mean(dim=-1, keepdim=True).sqrt()
+    return sources * (target / levels.clamp_min(1e-8))
+
+
 def resolve_checkpoint(checkpoint: str | Path | None = None, *, offline: bool = False) -> Path:
     """Resolve only the audited asset and verify its bytes before loading it."""
     if checkpoint is None:
-        from huggingface_hub import hf_hub_download
+        from .assets import resolve_asset
 
-        checkpoint = hf_hub_download(
-            MODEL_REPO, MODEL_FILENAME, revision=MODEL_REVISION,
-            local_files_only=offline,
-        )
+        checkpoint = resolve_asset(MODEL_FILENAME, offline=True if offline else None)
     path = Path(checkpoint)
     digest = hashlib.sha256()
     with path.open("rb") as handle:
@@ -141,6 +157,6 @@ class MossFormer2Separator:
     def separate(self, audio: np.ndarray, sample_rate: int, *, chunk_seconds: float = 4.0,
                  overlap_seconds: float = 1.0) -> tuple[np.ndarray, int]:
         waveform = prepare_audio(audio, sample_rate)
-        result = separate_chunks(self.model, waveform, device=self.device,
+        result = separate_chunks(self.model, normalize_for_model(waveform), device=self.device,
                                  chunk_seconds=chunk_seconds, overlap_seconds=overlap_seconds)
-        return result.numpy(), SAMPLE_RATE
+        return restore_source_levels(result, waveform).numpy(), SAMPLE_RATE

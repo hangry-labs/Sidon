@@ -1,0 +1,21 @@
+services:
+  sidon:
+    image: sidon:local
+    build:
+      context: .
+      target: baked
+    ports:
+      - "127.0.0.1:7868:7868"
+    volumes:
+      - sidon_data:/app/persistent
+    environment:
+      SIDON_DEVICE: auto
+      SIDON_MAX_UPLOAD_MB: "100"
+      SIDON_MAX_AUDIO_SECONDS: "600"
+      SIDON_RETENTION_HOURS: "24"
+      # Set SIDON_API_KEY in your shell or .env before exposing the service.
+      SIDON_API_KEY: ${SIDON_API_KEY:-}
+    gpus: all
+    restart: unless-stopped
+volumes:
+  sidon_data:

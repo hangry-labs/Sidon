@@ -1,45 +1,67 @@
-package	version	declared_expression	declared_license_field_summary	declared_classifiers	metadata_url
-certifi	2025.8.3		MPL-2.0	License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)	https://pypi.org/pypi/certifi/2025.8.3/json
-cffi	2.0.0	MIT			https://pypi.org/pypi/cffi/2.0.0/json
-charset-normalizer	3.4.3		MIT		https://pypi.org/pypi/charset-normalizer/3.4.3/json
-colorama	0.4.6			License :: OSI Approved :: BSD License	https://pypi.org/pypi/colorama/0.4.6/json
-einops	0.8.1		MIT	License :: OSI Approved :: MIT License	https://pypi.org/pypi/einops/0.8.1/json
-filelock	3.19.1	Unlicense		License :: OSI Approved :: The Unlicense (Unlicense)	https://pypi.org/pypi/filelock/3.19.1/json
-fsspec	2023.10.0		BSD	License :: OSI Approved :: BSD License	https://pypi.org/pypi/fsspec/2023.10.0/json
-hf-xet	1.1.10			License :: OSI Approved :: Apache Software License	https://pypi.org/pypi/hf-xet/1.1.10/json
-huggingface-hub	0.36.0		Apache	License :: OSI Approved :: Apache Software License	https://pypi.org/pypi/huggingface-hub/0.36.0/json
-idna	3.10			License :: OSI Approved :: BSD License	https://pypi.org/pypi/idna/3.10/json
-jinja2	3.1.6			License :: OSI Approved :: BSD License	https://pypi.org/pypi/jinja2/3.1.6/json
-markupsafe	3.0.2		License text supplied; inspect artifact	License :: OSI Approved :: BSD License	https://pypi.org/pypi/markupsafe/3.0.2/json
-mpmath	1.3.0		BSD	License :: OSI Approved :: BSD License	https://pypi.org/pypi/mpmath/1.3.0/json
-networkx	3.4.2			License :: OSI Approved :: BSD License	https://pypi.org/pypi/networkx/3.4.2/json
-networkx	3.5			License :: OSI Approved :: BSD License	https://pypi.org/pypi/networkx/3.5/json
-numpy	2.2.6		License text supplied; inspect artifact	License :: OSI Approved :: BSD License	https://pypi.org/pypi/numpy/2.2.6/json
-nvidia-cublas-cu12	12.8.4.1		NVIDIA Proprietary Software	License :: Other/Proprietary License	https://pypi.org/pypi/nvidia-cublas-cu12/12.8.4.1/json
-nvidia-cuda-cupti-cu12	12.8.90		NVIDIA Proprietary Software	License :: Other/Proprietary License	https://pypi.org/pypi/nvidia-cuda-cupti-cu12/12.8.90/json
-nvidia-cuda-nvrtc-cu12	12.8.93		NVIDIA Proprietary Software	License :: Other/Proprietary License	https://pypi.org/pypi/nvidia-cuda-nvrtc-cu12/12.8.93/json
-nvidia-cuda-runtime-cu12	12.8.90		NVIDIA Proprietary Software	License :: Other/Proprietary License	https://pypi.org/pypi/nvidia-cuda-runtime-cu12/12.8.90/json
-nvidia-cudnn-cu12	9.10.2.21		LicenseRef-NVIDIA-Proprietary	License :: Other/Proprietary License	https://pypi.org/pypi/nvidia-cudnn-cu12/9.10.2.21/json
-nvidia-cufft-cu12	11.3.3.83		NVIDIA Proprietary Software	License :: Other/Proprietary License	https://pypi.org/pypi/nvidia-cufft-cu12/11.3.3.83/json
-nvidia-cufile-cu12	1.13.1.3		NVIDIA Proprietary Software	License :: Other/Proprietary License	https://pypi.org/pypi/nvidia-cufile-cu12/1.13.1.3/json
-nvidia-curand-cu12	10.3.9.90		NVIDIA Proprietary Software	License :: Other/Proprietary License	https://pypi.org/pypi/nvidia-curand-cu12/10.3.9.90/json
-nvidia-cusolver-cu12	11.7.3.90		NVIDIA Proprietary Software	License :: Other/Proprietary License	https://pypi.org/pypi/nvidia-cusolver-cu12/11.7.3.90/json
-nvidia-cusparse-cu12	12.5.8.93		NVIDIA Proprietary Software	License :: Other/Proprietary License	https://pypi.org/pypi/nvidia-cusparse-cu12/12.5.8.93/json
-nvidia-cusparselt-cu12	0.7.1		NVIDIA Proprietary Software		https://pypi.org/pypi/nvidia-cusparselt-cu12/0.7.1/json
-nvidia-nccl-cu12	2.27.3		BSD-3-Clause	License :: Other/Proprietary License	https://pypi.org/pypi/nvidia-nccl-cu12/2.27.3/json
-nvidia-nvjitlink-cu12	12.8.93		NVIDIA Proprietary Software	License :: Other/Proprietary License	https://pypi.org/pypi/nvidia-nvjitlink-cu12/12.8.93/json
-nvidia-nvtx-cu12	12.8.90		Apache 2.0	License :: Other/Proprietary License	https://pypi.org/pypi/nvidia-nvtx-cu12/12.8.90/json
-packaging	25.0			License :: OSI Approved :: Apache Software License; License :: OSI Approved :: BSD License	https://pypi.org/pypi/packaging/25.0/json
-pycparser	2.23		BSD-3-Clause	License :: OSI Approved :: BSD License	https://pypi.org/pypi/pycparser/2.23/json
-pyyaml	6.0.2		MIT	License :: OSI Approved :: MIT License	https://pypi.org/pypi/pyyaml/6.0.2/json
-requests	2.32.5		Apache-2.0	License :: OSI Approved :: Apache Software License	https://pypi.org/pypi/requests/2.32.5/json
-rotary-embedding-torch	0.8.3		MIT	License :: OSI Approved :: MIT License	https://pypi.org/pypi/rotary-embedding-torch/0.8.3/json
-scipy	1.15.3		License text supplied; inspect artifact	License :: OSI Approved :: BSD License	https://pypi.org/pypi/scipy/1.15.3/json
-setuptools	80.9.0	MIT			https://pypi.org/pypi/setuptools/80.9.0/json
-soundfile	0.13.1		BSD 3-Clause License	License :: OSI Approved :: BSD License	https://pypi.org/pypi/soundfile/0.13.1/json
-sympy	1.14.0		BSD	License :: OSI Approved :: BSD License	https://pypi.org/pypi/sympy/1.14.0/json
-torch	2.8.0		BSD-3-Clause	License :: OSI Approved :: BSD License	https://pypi.org/pypi/torch/2.8.0/json
-tqdm	4.67.1		MPL-2.0 AND MIT	License :: OSI Approved :: MIT License; License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)	https://pypi.org/pypi/tqdm/4.67.1/json
-triton	3.4.0			License :: OSI Approved :: MIT License	https://pypi.org/pypi/triton/3.4.0/json
-typing-extensions	4.15.0	PSF-2.0			https://pypi.org/pypi/typing-extensions/4.15.0/json
-urllib3	2.0.7			License :: OSI Approved :: MIT License	https://pypi.org/pypi/urllib3/2.0.7/json
+name	version	declared_license_summary	missing_notice
+annotated-doc	0.0.5	MIT	False
+annotated-types	0.8.0	MIT	False
+anyio	4.15.1	MIT	False
+certifi	2026.10.23	MPL-2.0	False
+cffi	2.1.1	MIT-0	False
+click	8.5.0	BSD-3-Clause	False
+cuda-bindings	12.9.4	LicenseRef-NVIDIA-SOFTWARE-LICENSE	False
+cuda-pathfinder	1.8.4	Apache-2.0	False
+einops	0.8.1	MIT	False
+fastapi	0.162.0	MIT	False
+filelock	4.2.4	MIT	False
+fsspec	2026.9.0	BSD-3-Clause	False
+h11	0.16.0	MIT	False
+hatchling	1.33.0	MIT	False
+hf-xet	1.7.1	Apache-2.0	False
+httpcore	1.0.9	BSD-3-Clause	False
+httpx	0.28.1	BSD-3-Clause	False
+huggingface_hub	1.28.0	Apache-2.0	False
+idna	3.20	BSD-3-Clause	False
+Jinja2	3.1.6	BSD-3-Clause (included license text)	False
+MarkupSafe	3.0.4	BSD-3-Clause	False
+mpmath	1.3.0	BSD	False
+networkx	3.7	BSD-3-Clause	False
+numpy	2.5.4	BSD-3-Clause AND 0BSD AND MIT AND Zlib AND CC0-1.0	False
+nvidia-cublas-cu12	12.8.4.1	NVIDIA Proprietary Software	False
+nvidia-cuda-cupti-cu12	12.8.90	NVIDIA Proprietary Software	False
+nvidia-cuda-nvrtc-cu12	12.8.93	NVIDIA Proprietary Software	False
+nvidia-cuda-runtime-cu12	12.8.90	NVIDIA Proprietary Software	False
+nvidia-cudnn-cu12	9.10.2.21	LicenseRef-NVIDIA-Proprietary	False
+nvidia-cufft-cu12	11.3.3.83	NVIDIA Proprietary Software	False
+nvidia-cufile-cu12	1.13.1.3	NVIDIA Proprietary Software	False
+nvidia-curand-cu12	10.3.9.90	NVIDIA Proprietary Software	False
+nvidia-cusolver-cu12	11.7.3.90	NVIDIA Proprietary Software	False
+nvidia-cusparse-cu12	12.5.8.93	NVIDIA Proprietary Software	False
+nvidia-cusparselt-cu12	0.7.1	NVIDIA Proprietary Software	False
+nvidia-nccl-cu12	2.27.5	BSD-3-Clause	False
+nvidia-nvjitlink-cu12	12.8.93	NVIDIA Proprietary Software	False
+nvidia-nvshmem-cu12	3.4.5	LicenseRef-NVIDIA-Proprietary	False
+nvidia-nvtx-cu12	12.8.90	Apache 2.0	False
+opentelemetry-api	1.45.2	Apache-2.0	False
+packaging	26.3	Apache-2.0 OR BSD-2-Clause	False
+pathspec	1.1.1	MPL-2.0 (included license text)	False
+pip	26.2.2	MIT	False
+pluggy	1.7.0	MIT	False
+pycparser	3.12	BSD-3-Clause	False
+pydantic	2.14.1	MIT	False
+pydantic_core	2.50.1	MIT	False
+python-multipart	0.0.32	Apache-2.0	False
+PyYAML	6.0.3	MIT	False
+rotary-embedding-torch	0.8.3	MIT	False
+scipy	1.18.1	License :: OSI Approved :: BSD License	False
+setuptools	84.2.1	MIT	False
+sidon	0.1.0	Apache-2.0 AND MIT AND ISC	False
+soundfile	0.14.0	BSD 3-Clause License	False
+starlette	1.10.0	BSD-3-Clause	False
+sympy	1.14.0	BSD	False
+tomlkit	0.15.2	MIT	False
+torch	2.10.0+cu128	BSD-3-Clause	False
+torchaudio	2.10.0+cu128	BSD-2-Clause (included license text)	False
+tqdm	4.70.1	MPL-2.0 AND MIT	False
+triton	3.6.0	MIT (included license text)	False
+trove-classifiers	2026.9.21.13	Apache-2.0 (included license text)	False
+typing-inspection	0.4.4	MIT	False
+typing_extensions	4.16.0	PSF-2.0	False
+uvicorn	0.54.0	BSD-3-Clause	False
+wheel	0.48.0	MIT	False

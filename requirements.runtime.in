@@ -1,0 +1,18 @@
+# Qualified CPython 3.13 / Linux x86-64 / NVIDIA CUDA 12.8 runtime.
+--extra-index-url https://download.pytorch.org/whl/cu128
+torch==2.10.0+cu128
+torchaudio==2.10.0+cu128
+numpy==2.5.4
+scipy==1.18.1
+soundfile==0.14.0
+einops==0.8.1
+rotary-embedding-torch==0.8.3
+huggingface-hub==1.28.0
+fastapi==0.162.0
+httpx==0.28.1
+pydantic==2.14.1
+python-multipart==0.0.32
+uvicorn==0.54.0
+setuptools==84.2.1
+wheel>=0.46,<1
+hatchling==1.33.0

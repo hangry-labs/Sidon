@@ -1,13 +1,16 @@
 # MossFormer2 inference runtime
 
 The current CLI separates a mono mixture into two 16 kHz tracks using the
-Apache-2.0 MossFormer2 SS checkpoint. It does not yet run a separate speech
-restoration stage or provide a browser UI, server API or Docker image.
+Apache-2.0 MossFormer2 SS checkpoint. The studio also offers a separate
+Sidon restoration stage and a combined split-then-enhance workflow; see the README.
 
 ## Processing
 
 - Accepts mono or multichannel audio supported by libsndfile, downmixing to mono.
-- Resamples once to 16 kHz, retaining input gain rather than peak-normalizing.
+- Resamples to 16 kHz and normalizes active-region RMS to the upstream operating level.
+- Restores each complete output track to input RMS. The SI-SNR-trained model has
+  arbitrary raw output gain; one gain per track avoids pumping at chunk joins.
+  This is level calibration, not an estimate of each speaker's original loudness.
 - Uses four-second windows with one-second overlap by default. Durations are
   configurable; overlap must be positive and shorter than the window.
 - Matches speaker order by overlap similarity and crossfades boundaries.

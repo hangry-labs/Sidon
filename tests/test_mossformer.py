@@ -7,7 +7,7 @@ import numpy as np
 import pytest
 import torch
 
-from sidon.inference.mossformer import prepare_audio, resolve_checkpoint, separate_chunks
+from sidon.inference.mossformer import prepare_audio, resolve_checkpoint, separate_chunks, normalize_for_model, restore_source_levels
 
 
 class AlternatingSeparator(torch.nn.Module):
@@ -71,3 +71,15 @@ def test_unknown_checkpoint_bytes_are_rejected(tmp_path):
     path.write_bytes(b"not the audited checkpoint")
     with pytest.raises(ValueError, match="checksum mismatch"):
         resolve_checkpoint(path)
+
+
+def test_arbitrary_model_gain_is_corrected_once_per_track():
+    wave = torch.sin(torch.arange(1000) * .1) * .1
+    result = restore_source_levels(torch.stack([wave * 500, -wave * 200]), wave)
+    torch.testing.assert_close(result[0], wave)
+    torch.testing.assert_close(result[1], -wave)
+    torch.testing.assert_close(restore_source_levels(torch.zeros(2, 1000), wave), torch.zeros(2, 1000))
+    assert torch.isfinite(normalize_for_model(torch.zeros(1000))).all()
+    normalized = normalize_for_model(wave)
+    power = normalized.square()
+    assert power[power > power.mean()].mean().sqrt().item() == pytest.approx(10 ** (-25 / 20), rel=1e-5)

@@ -18,6 +18,7 @@ dist/
 .idea/
 .vscode/
 .ai/
+.ci-build/
 
 # Downloaded models and runtime artifacts
 *.ckpt

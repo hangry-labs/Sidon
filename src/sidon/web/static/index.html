@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark"><title>Sidon · Hangry Labs</title>
+  <link rel="icon" href="/static/assets/sidon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/vendor/lucide/lucide.css"><link rel="stylesheet" href="/static/styles.css">
+  <script type="module" src="/static/app.js"></script>
+</head>
+<body>
+<header class="brand-hero">
+  <div class="labs-branding">
+    <a class="labs-signature" href="https://github.com/hangry-labs" target="_blank" rel="noreferrer"><span class="powered-label">Powered by</span><img class="labs-logo" src="/static/assets/hangrylabs_logo.webp" alt="Hangry Labs"></a>
+    <a class="brand-contact" href="mailto:contact@hangrylabs.app" aria-label="Contact Hangry Labs"><svg class="brand-contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="2" y="5" width="20" height="15" rx="3"/><path d="m3 7 9 6 9-6"/></svg><span class="brand-contact-copy"><span>Ideas, feedback &amp; support</span><strong>contact@hangrylabs.app</strong></span></a>
+  </div>
+  <img class="collapsed-mascot" src="/static/assets/sidon.svg" alt="Sidon">
+  <nav class="brand-nav" aria-label="Project"><div class="brand-links">
+    <a class="primary-link" href="#enhance" data-view="enhance"><i class="icon-sparkles" aria-hidden="true"></i> Enhance audio</a>
+    <a href="#api" data-view="api"><i class="icon-book-open" aria-hidden="true"></i> API docs</a>
+    <a href="#system" data-view="system"><i class="icon-boxes" aria-hidden="true"></i> Models</a>
+    <a href="https://github.com/hangry-labs/Sidon" target="_blank" rel="noreferrer"><i class="icon-git-branch" aria-hidden="true"></i> GitHub</a>
+  </div></nav>
+  <div class="brand-copy"><h1><img class="product-logo" src="/static/assets/sidon-wordmark.svg" alt="Sidon · Voice restoration studio"></h1></div>
+  <div class="runtime-badge" id="runtime-badge"><i class="icon-activity" aria-hidden="true"></i><div class="runtime-copy"><strong id="runtime-state">Connecting</strong><span id="runtime-detail">Local audio processing</span></div><span class="runtime-version-group"><span class="runtime-version" id="version">…</span></span></div>
+  <button class="hero-toggle" id="hero-toggle" aria-expanded="true" aria-label="Collapse header"><i class="icon-chevron-up" aria-hidden="true"></i></button>
+</header>
+<nav class="app-tabs" role="tablist" aria-label="Studio">
+  <button class="tab-button active" id="tab-enhance" role="tab" aria-controls="view-process" aria-selected="true" data-view="enhance">Enhance</button>
+  <button class="tab-button" id="tab-separate" role="tab" aria-controls="view-process" aria-selected="false" data-view="separate" tabindex="-1">Split speakers</button>
+  <button class="tab-button" id="tab-api" role="tab" aria-controls="view-api" aria-selected="false" data-view="api" tabindex="-1">API</button>
+  <button class="tab-button" id="tab-system" role="tab" aria-controls="view-system" aria-selected="false" data-view="system" tabindex="-1">System</button>
+</nav>
+<main>
+  <section id="view-process" class="workspace" role="tabpanel" aria-labelledby="tab-enhance">
+    <aside class="settings-panel">
+      <div class="section-title"><i class="icon-sliders-horizontal" aria-hidden="true"></i> Processing settings</div>
+      <label class="field"><span>Workflow</span><select id="mode"><option value="enhance">Enhance a voice</option><option value="separate">Split two speakers</option><option value="separate_enhance">Split, then enhance</option></select></label>
+      <p class="help" id="mode-help">Restore noisy or degraded speech with Sidon. Best suited to a single voice.</p>
+      <label class="field" id="strength-field"><span>Enhancement mix <output id="strength-value">100%</output></span><input type="range" id="strength" min="0" max="1" step="0.05" value="1"><small>Blend the restored voice with the original. 100% uses the restored voice.</small></label>
+      <label class="field"><span>Output format</span><select id="output-format"><option value="wav">WAV · float32</option><option value="flac">FLAC · 24-bit</option></select></label>
+      <p class="help" id="output-help">Enhanced audio: mono, 48 kHz.</p>
+      <button class="primary-button" id="process" disabled><i class="icon-sparkles" aria-hidden="true"></i><span>Enhance audio</span></button>
+      <div class="status-line" id="job-status" role="status" aria-live="polite">Choose an audio file to begin.</div>
+      <p class="help">Audio is processed on this server. Results expire automatically; you can delete them sooner.</p>
+    </aside>
+    <div class="content-panel">
+      <div class="panel-toolbar"><div><h2 id="workflow-title">Give your voice a cleaner finish</h2><p class="help">Upload, process, then compare the result with your original.</p></div><button class="secondary-button" id="choose"><i class="icon-upload" aria-hidden="true"></i> Open audio</button></div>
+      <input type="file" id="file" accept="audio/*,.wav,.flac,.ogg,.aiff,.aif" hidden>
+      <div id="input-player"></div>
+      <div class="output-section"><div class="panel-toolbar"><div class="section-title"><i class="icon-audio-lines" aria-hidden="true"></i> Results</div><div class="button-row"><button class="secondary-button" id="download-all" disabled><i class="icon-download" aria-hidden="true"></i> Download all</button><button class="secondary-button" id="delete" disabled><i class="icon-x" aria-hidden="true"></i> Delete job</button></div></div><div id="outputs"><div class="empty-result"><i class="icon-sparkles" aria-hidden="true"></i><strong>Your improved audio will appear here</strong><span>Listen to both versions before choosing what to keep.</span></div></div></div>
+      <details><summary>What to expect</summary><p class="help">Restoration resynthesizes speech and may change the voice or introduce artifacts. Compare with the original. Speaker separation always returns two mono tracks; these are relative speaker labels, not identified people. Long silences and ambiguous overlaps can cause speaker swaps.</p></details>
+    </div>
+  </section>
+  <section id="view-api" class="document-view" role="tabpanel" aria-labelledby="tab-api" hidden>
+    <h2>Audio jobs, ready for your workflow</h2><p>Use the same API as the studio. Submit a file, poll the job, then download its tracks.</p>
+    <div class="api-grid"><article class="card"><h3>1. Submit audio</h3><pre><code>curl -X POST http://localhost:7868/api/jobs \
+  -F file=@voice.wav \
+  -F mode=enhance \
+  -F strength=1 \
+  -F output_format=wav</code></pre><p class="help">Modes: <code>enhance</code>, <code>separate</code>, <code>separate_enhance</code>. Returns HTTP 202 with a job ID.</p></article>
+    <article class="card"><h3>2. Poll and download</h3><pre><code>curl http://localhost:7868/api/jobs/JOB_ID
+
+curl -OJ http://localhost:7868/api/jobs/JOB_ID/files/results.zip
+
+curl -X DELETE http://localhost:7868/api/jobs/JOB_ID</code></pre><p class="help">Wait for <code>status: done</code>. Track filenames are listed in <code>outputs</code>. Downloads include a processing manifest.</p></article></div>
+    <article class="card"><h3>Service endpoints</h3><p><code>GET /healthz</code> · <code>GET /api/status</code> · <code>GET /api/jobs</code> · <code>PUT /api/settings</code> · <code>POST /api/models/{enhance|separate}</code> · <code>GET /api/gpu</code></p><p>Model actions accept <code>{"action":"load"}</code> or <code>{"action":"unload"}</code>. These routes use the same authentication as jobs.</p><a href="/openapi.json" target="_blank" rel="noreferrer">OpenAPI schema</a><p class="help">If an API key is configured, send <code>Authorization: Bearer YOUR_KEY</code>. All clients of one instance share its jobs. Use separate instances for separate trust boundaries.</p></article>
+  </section>
+  <section id="view-system" class="system-view" role="tabpanel" aria-labelledby="tab-system" hidden>
+    <div class="system-controls">
+      <div class="status-line" id="system-status" role="status" aria-live="polite">Manage this server's models and defaults.</div>
+      <article class="card"><h2>Models &amp; runtime</h2><p class="help" id="system-runtime">Checking runtime…</p><div id="models"></div><p class="help">Models load automatically when needed. Unload them to release memory. Full images include all weights; tiny images download them on first use.</p></article>
+      <article class="card"><h3>Default processing settings</h3><p class="help">Save the current processing choices as defaults for this server. Changes apply to future jobs.</p><label class="field"><span>Separation window (seconds)</span><input id="chunk-seconds" type="number" min="2" max="16" step="0.5" value="4"></label><label class="field"><span>Separation overlap (seconds)</span><input id="overlap-seconds" type="number" min="0.1" max="2" step="0.1" value="1"></label><button class="primary-button" id="save-settings">Save defaults</button></article>
+      <article class="card"><h3>API access</h3><label class="field"><span>API key (if configured)</span><input id="api-key" type="password" autocomplete="off" placeholder="Bearer key"></label><button class="secondary-button" id="connect">Connect</button><p class="help">Kept in memory for this page only. Configure the server key with SIDON_API_KEY before starting the service.</p></article>
+      <article class="card"><h3>Storage &amp; limits</h3><p class="help" id="limits">Checking server limits…</p><button class="secondary-button" id="refresh-jobs">Refresh job history</button><div id="history"></div></article>
+    </div>
+    <div class="gpu-panel"><div class="panel-toolbar"><h2>GPU monitor</h2><label class="compact-field"><span>History</span><select id="gpu-window"><option value="60">1 minute</option><option value="600">10 minutes</option></select></label></div><div id="gpu"><p class="help">Waiting for GPU telemetry…</p></div><p class="help">Samples while System is visible. Optional sensors may be unavailable.</p></div>
+  </section>
+</main>
+<footer>Sidon · Local voice restoration &amp; speaker separation · <a href="https://github.com/hangry-labs/Sidon/blob/main/docs/licensing.md" target="_blank" rel="noreferrer">Licenses &amp; model notices</a></footer>
+</body></html>

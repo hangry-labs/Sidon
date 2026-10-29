@@ -1,61 +1,63 @@
-# Current source license review
+# Licensing and redistribution
 
-Reviewed 2026-10-29. Scope: the current inference-only source tree, declared
-dependencies, selected pretrained checkpoint and built wheel/source package.
+Reviewed for this inference-focused product on 2026-10-29. Source, model grants and
+complete binary-image dependencies are separate layers; the root Apache license
+does not replace third-party terms.
 
-## Retained source and model
+| Shipped component | Basis and retained notices |
+| --- | --- |
+| Hangry Labs application contributions | Apache-2.0, root LICENSE |
+| Original Sidon material / filterbank preparation | MIT, licenses/Sidon-upstream-MIT.txt |
+| Sidon restoration exports | Publisher-declared MIT; pinned revision b3b02d8bbd55fdbc410e6e46e76ef95ace4fbf52, licenses/Sidon-MODEL-CARD.md |
+| MossFormer2 architecture | ClearerVoice-Studio Apache-2.0; revision 6b3774dc79c46ae8bed2a4fa5f706f0ac8c75c61, provenance.json and retained license |
+| Credited SpeechBrain / FLASH origins | Apache-2.0 / MIT, original notices retained |
+| MossFormer2 SS weights | Publisher-declared Apache-2.0; revision 407cb030cd66340918ebb6c8cc63b18f8592cdbe, licenses/MossFormer2-MODEL-CARD.md |
+| UI shell, GPU monitor, packaging/publication helpers | Adapted from faster-qwen3-tts-studio, MIT; licenses/faster-qwen-upstream-MIT.txt |
+| Lucide icon subset | Complete packaged vendor/lucide/LICENSE retained, including applicable upstream notices |
 
-| Component | Verified license basis |
-|---|---|
-| Hangry Labs integration code | Owner-selected Apache-2.0, root `LICENSE`; explicit SPDX headers on new Python modules/tests |
-| Original Sidon attribution | Original MIT copyright, grant and disclaimer preserved in `licenses/Sidon-upstream-MIT.txt` |
-| Four imported MossFormer2 architecture files | ClearerVoice-Studio [revision 6b3774dc79c46ae8bed2a4fa5f706f0ac8c75c61](https://github.com/modelscope/ClearerVoice-Studio/tree/6b3774dc79c46ae8bed2a4fa5f706f0ac8c75c61), Apache-2.0; source hashes/URLs in the retained provenance manifest |
-| Architecture's credited SpeechBrain/FLASH origins | Apache-2.0 / MIT; original licenses and attribution preserved |
-| `alibabasglab/MossFormer2_SS_16K` | Publisher's [Apache-2.0 model card](https://huggingface.co/alibabasglab/MossFormer2_SS_16K/blob/407cb030cd66340918ebb6c8cc63b18f8592cdbe/README.md), revision `407cb030cd66340918ebb6c8cc63b18f8592cdbe`; card preserved locally |
+The package's aggregate source expression is **Apache-2.0 AND MIT AND ISC**. Model binaries
+are baked into the full Docker image or downloaded by the tiny image; they are
+not committed or included in the wheel/sdist. Revisions and SHA256 values live in
+`src/sidon/inference/assets.py`; the image also carries a verified model manifest.
+No arbitrary model-repository Python is downloaded or executed. Pinned TorchScript
+exports are executable model artifacts and are checksum verified before loading.
 
-The checkpoint SHA-256 is
-`00a3a48bda492db1e829b85dd443f8f43a43039a3e90f1a24962ea9caf14a11a`.
-The runtime checks it before strict, weights-only parameter loading. A model-card
-declaration documents the publisher's grant; it is not independent proof of all
-training-data rights. Model binaries are not part of the source repository or
-Python distributions.
+Model-card grants document the publisher's terms. They do not independently prove
+all training-data rights or grant rights to uploaded recordings. Upstream issue
+[#19](https://github.com/sarulab-speech/Sidon/issues/19) discusses a Japanese
+training-law exception; that discussion is distinct from a model's distribution
+license and does not relicense non-commercial libraries or DialogueSidon weights.
 
-The upstream channel-normalization wrapper is not copied into the selected
-architecture. Its needed operation uses standard PyTorch LayerNorm with explicit
-axis transposes. Numerical comparison with the original model passed exactly on
-the tested input. See [runtime notices](../RUNTIME_NOTICES.md) for modification
-notices and [third-party notices](../THIRD_PARTY_NOTICES.md) for license texts.
+## Excluded research components
 
-## Removed from the current tree
+DialogueSidon weights, GENESES/DiT research implementations, unresolved helper
+provenance and CC-BY-NC flow-matching are absent from the current runtime and its
+dependencies. Training, preprocessing, dataset tools and the original Gradio demo
+are removed. Historical Git commits are not rewritten by the source cleanup.
 
-The original training/preprocessing code, dataset tooling, experimental model
-tree, cluster scripts, notebooks, Gradio demo and optional research dependency
-group have been removed. This includes GENESES/DiT-derived code, unresolved
-positional helper provenance, DialogueSidon loading paths and the non-commercial
-`flow-matching` dependency. They are no longer selectable package extras or
-retained source files. Historical Git commits are not rewritten by this cleanup.
+## Runtime and corresponding sources
 
-License texts used only by those removed components were removed too. Attribution
-and license terms for the components still shipped are preserved.
+`requirements.runtime.txt` locks and hashes the qualified Linux CPython 3.13 / CUDA
+12.8 environment. `uv.lock` supports local development with explicit PyTorch-index
+selection. The image collector inventories actual installed wheels and Debian
+packages, copies their notices, and hashes bundled native files. See
+[the generated dependency summary](runtime-dependency-licenses.tsv).
 
-## Dependencies and artifact scope
+Native libraries retain licenses including LGPL libsndfile/codecs and GCC runtime
+terms. NVIDIA CUDA libraries use their own redistribution agreements; Intel oneMKL
+uses the Intel Simplified Software License, reproduced in THIRD_PARTY_NOTICES.md.
+These are not collectively Apache-licensed containers. Commercial use is subject
+to the component terms, including notice/source obligations where applicable.
 
-The only runtime requirements are PyTorch, NumPy, SciPy, SoundFile, einops,
-rotary-embedding-torch and huggingface-hub, with their transitive dependencies.
-The lockfile and [current inventory](runtime-dependency-licenses.tsv) record
-exact versions and publisher metadata. The rotary-embedding-torch 0.8.3 wheel's
-included MIT license was also inspected directly, beyond its metadata label.
+The `sources` image contains matching Debian source packages (including patches),
+reviewed wheel-bundled native component sources and build recipes. Collection
+fails on missing notices, changed reviewed binary hashes, or an unreviewed
+copyleft package. Source artifacts are size/hash verified. Published binaries
+identify their exact immutable source image, which publishes first. Local builders
+must retain/distribute the matching source target with their binaries. Keep
+libraries replaceable; no application restriction limits LGPL debugging or
+modification rights. Full details: [Docker packaging](docker-packaging.md).
 
-No known non-commercial or missing-license source component remains in the
-selected current tree based on this review. Native-library obligations are
-separate: SoundFile wheels may bundle LGPL libsndfile/codecs, and GPU PyTorch
-builds contain NVIDIA components. Those licenses permit commercial use subject
-to their terms; the application does not relicense them.
-
-The wheel/sdist are checked for the required notices, licenses, provenance record
-and declared dependency set. The aggregate license expression is
-`Apache-2.0 AND MIT`, reflecting retained MIT portions as well as Apache code.
-Publishing this cleaned source is distinct from distributing a complete runtime
-image. The future Docker image still needs its exact base-image/native-binary
-inventory, notices, applicable source/relinking arrangements and baked-model
-verification. No Docker/UI/API implementation is claimed in this milestone.
+This is an engineering record of declared grants, retained notices and matching
+source provision, not a guarantee of every upstream rights claim. Qualification
+results and remaining limits are in [validation](validation.md).

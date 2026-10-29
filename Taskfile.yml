@@ -1,0 +1,22 @@
+version: '3'
+tasks:
+  setup:
+    cmds: [uv sync --locked]
+  test:
+    cmds: [uv run --locked pytest -q]
+  studio:
+    cmds: [uv run --locked sidon-studio]
+  lock-runtime:
+    cmds: [pwsh -NoProfile -File scripts/lock-runtime.ps1]
+  check-runtime-lock:
+    cmds: [pwsh -NoProfile -File scripts/lock-runtime.ps1 -Check 1]
+  build:
+    cmds: [docker build --target baked -t sidon:local .]
+  build-tiny:
+    cmds: [docker build --target tiny -t sidon:tiny .]
+  build-sources:
+    cmds: [docker build --target sources -t sidon:sources .]
+  up:
+    cmds: [docker compose up -d --build]
+  down:
+    cmds: [docker compose down]
