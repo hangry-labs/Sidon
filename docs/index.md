@@ -10,6 +10,7 @@ Start with the [studio overview and local quick start](../README.md), or
 
 - [Performance and precision](performance.md): cold/warm measurements, optimized
   restoration and reference comparisons.
+- [Audio formats](audio-formats.md): uploads, conversion-only jobs and download codecs.
 - [Runtime validation](validation.md): tested workflows and qualification limits.
 - [Two-speaker separation](mossformer-runtime.md): MossFormer2 behavior and limits.
 - [Docker packaging and publication](docker-packaging.md): image variants,

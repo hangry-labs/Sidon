@@ -10,7 +10,7 @@ docker build --target sources -t sidon:sources .
 docker buildx build --target evidence --output type=local,dest=build-evidence .
 ```
 
-Both product targets use the same hashed CPython 3.13 / Linux x86-64 runtime and pinned Python base digest. Only needed audio libraries are added; FFmpeg is not part of this image. The baked target verifies every downloaded asset against `sidon.inference.assets.ASSETS` and retains `/app/baked-models/manifest.json`. Baked weights are outside the data volume and remain available when a fresh volume is attached.
+Both product targets use the same hashed CPython 3.13 / Linux x86-64 runtime and pinned Python base digest. FFmpeg/ffprobe provide additional audio decoding and compressed exports; their Debian codec dependencies are included in the notice/source inventory. The baked target verifies every downloaded asset against `sidon.inference.assets.ASSETS` and retains `/app/baked-models/manifest.json`. Baked weights are outside the data volume and remain available when a fresh volume is attached.
 
 The optimized CUDA runtime includes GCC and C headers to build Triton's small
 launcher locally. `/app/persistent/triton` caches compiled kernels. No external

@@ -37,11 +37,16 @@ def wait_job(client, job_id):
 
 
 @pytest.mark.parametrize("mode,tracks,rate", [("enhance", 1, 48000), ("separate", 2, 16000), ("separate_enhance", 2, 48000)])
-def test_processing_download_and_delete(tmp_path, mode, tracks, rate):
+@pytest.mark.parametrize("output_format", ["wav", "flac", "opus"])
+def test_processing_download_and_delete(tmp_path, mode, tracks, rate, output_format):
+    if output_format == "opus":
+        import shutil
+        if not shutil.which("ffmpeg"):
+            pytest.skip("FFmpeg required for Opus")
     app = create_app(tmp_path)
     with TestClient(app) as client:
         app.state.runtime.models.update(enhance=Restorer(), separate=Separator())
-        response = client.post("/api/jobs", files={"file": ("voice.wav", audio_file())}, data={"mode": mode})
+        response = client.post("/api/jobs", files={"file": ("voice.wav", audio_file())}, data={"mode": mode, "output_format": output_format})
         assert response.status_code == 202, response.text
         job = wait_job(client, response.json()["id"])
         assert job["status"] == "done", job
@@ -49,7 +54,7 @@ def test_processing_download_and_delete(tmp_path, mode, tracks, rate):
         assert len(job["outputs"]) == tracks
         for track in job["outputs"]:
             data, sr = sf.read(io.BytesIO(client.get(f"/api/jobs/{job['id']}/files/{track['file']}").content))
-            assert sr == rate and np.isfinite(data).all()
+            assert sr == (48000 if output_format == "opus" else rate) and np.isfinite(data).all()
         archive = client.get(f"/api/jobs/{job['id']}/files/results.zip")
         assert len(zipfile.ZipFile(io.BytesIO(archive.content)).namelist()) == tracks + 1
         assert client.get(f"/api/jobs/{job['id']}/files/settings.json").status_code == 404

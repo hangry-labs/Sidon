@@ -27,6 +27,7 @@
 <nav class="app-tabs" role="tablist" aria-label="Studio">
   <button class="tab-button active" id="tab-enhance" role="tab" aria-controls="view-process" aria-selected="true" data-view="enhance">Enhance</button>
   <button class="tab-button" id="tab-separate" role="tab" aria-controls="view-process" aria-selected="false" data-view="separate" tabindex="-1">Split speakers</button>
+  <button class="tab-button" id="tab-convert" role="tab" aria-controls="view-process" aria-selected="false" data-view="convert" tabindex="-1">Convert</button>
   <button class="tab-button" id="tab-api" role="tab" aria-controls="view-api" aria-selected="false" data-view="api" tabindex="-1">API</button>
   <button class="tab-button" id="tab-system" role="tab" aria-controls="view-system" aria-selected="false" data-view="system" tabindex="-1">System</button>
 </nav>
@@ -34,10 +35,10 @@
   <section id="view-process" class="workspace" role="tabpanel" aria-labelledby="tab-enhance">
     <aside class="settings-panel">
       <div class="section-title"><i class="icon-sliders-horizontal" aria-hidden="true"></i> Processing settings</div>
-      <label class="field"><span>Workflow</span><select id="mode"><option value="enhance">Enhance a voice</option><option value="separate">Split two speakers</option><option value="separate_enhance">Split, then enhance</option></select></label>
+      <label class="field"><span>Workflow</span><select id="mode"><option value="enhance">Enhance a voice</option><option value="separate">Split two speakers</option><option value="separate_enhance">Split, then enhance</option><option value="convert">Convert only</option></select></label>
       <p class="help" id="mode-help">Restore noisy or degraded speech with Sidon. Best suited to a single voice.</p>
       <label class="field" id="strength-field"><span>Enhancement mix <output id="strength-value">100%</output></span><input type="range" id="strength" min="0" max="1" step="0.05" value="1"><small>Blend the restored voice with the original. 100% uses the restored voice.</small></label>
-      <label class="field"><span>Output format</span><select id="output-format"><option value="wav">WAV · float32</option><option value="flac">FLAC · 24-bit</option></select></label>
+      <label class="field"><span>Output format</span><select id="output-format"><option value="wav">WAV · float32</option><option value="flac">FLAC · 24-bit</option><option value="opus">Opus · 96 kbps VBR</option><option value="mp3">MP3 · 192 kbps</option><option value="m4a">M4A · AAC 192 kbps</option><option value="aac">AAC · 192 kbps</option><option value="ogg">OGG · Vorbis quality 5</option></select></label>
       <p class="help" id="output-help">Enhanced audio: mono, 48 kHz.</p>
       <button class="primary-button" id="process" disabled><i class="icon-sparkles" aria-hidden="true"></i><span>Enhance audio</span></button>
       <div class="status-line" id="job-status" role="status" aria-live="polite">Choose an audio file to begin.</div>
@@ -45,7 +46,7 @@
     </aside>
     <div class="content-panel">
       <div class="panel-toolbar"><div><h2 id="workflow-title">Give your voice a cleaner finish</h2><p class="help">Upload, process, then compare the result with your original.</p></div><button class="secondary-button" id="choose"><i class="icon-upload" aria-hidden="true"></i> Open audio</button></div>
-      <input type="file" id="file" accept="audio/*,.wav,.flac,.ogg,.aiff,.aif" hidden>
+      <input type="file" id="file" accept="audio/*,.wav,.flac,.opus,.mp3,.m4a,.aac,.ogg,.aiff,.aif,.webm,.wma,.caf,.au" hidden>
       <div id="input-player"></div>
       <div class="output-section"><div class="panel-toolbar"><div class="section-title"><i class="icon-audio-lines" aria-hidden="true"></i> Results</div><div class="button-row"><button class="secondary-button" id="download-all" disabled><i class="icon-download" aria-hidden="true"></i> Download all</button><button class="secondary-button" id="delete" disabled><i class="icon-x" aria-hidden="true"></i> Delete job</button></div></div><div id="outputs"><div class="empty-result"><i class="icon-sparkles" aria-hidden="true"></i><strong>Your improved audio will appear here</strong><span>Listen to both versions before choosing what to keep.</span></div></div></div>
       <details><summary>What to expect</summary><p class="help">Restoration resynthesizes speech and may change the voice or introduce artifacts. Compare with the original. Speaker separation always returns two mono tracks; these are relative speaker labels, not identified people. Long silences and ambiguous overlaps can cause speaker swaps.</p></details>
@@ -57,7 +58,7 @@
   -F file=@voice.wav \
   -F mode=enhance \
   -F strength=1 \
-  -F output_format=wav</code></pre><p class="help">Modes: <code>enhance</code>, <code>separate</code>, <code>separate_enhance</code>. Returns HTTP 202 with a job ID.</p></article>
+  -F output_format=wav</code></pre><p class="help">Modes: <code>enhance</code>, <code>separate</code>, <code>separate_enhance</code>, <code>convert</code>. Output formats: <code>wav</code>, <code>flac</code>, <code>opus</code>, <code>mp3</code>, <code>m4a</code>, <code>aac</code>, <code>ogg</code>. Returns HTTP 202 with a job ID.</p></article>
     <article class="card"><h3>2. Poll and download</h3><pre><code>curl http://localhost:7868/api/jobs/JOB_ID
 
 curl -OJ http://localhost:7868/api/jobs/JOB_ID/files/results.zip

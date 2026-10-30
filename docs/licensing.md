@@ -55,6 +55,11 @@ launcher compilation. Their Debian notices and exact corresponding sources are
 collected with the other runtime packages. The custom activation kernel is this
 project's Apache-2.0 code; it does not contain model weights or training code.
 
+FFmpeg/ffprobe and their codecs are Debian runtime packages, with original
+notices and matching source packages collected by the same pipeline. Their
+GPL/LGPL terms remain separate from the application license. Native Python
+installations use the operator's installed FFmpeg rather than bundling a binary.
+
 The `sources` image contains matching Debian source packages (including patches),
 reviewed wheel-bundled native component sources and build recipes. Collection
 fails on missing notices, changed reviewed binary hashes, or an unreviewed

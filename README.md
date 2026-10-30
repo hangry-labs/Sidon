@@ -43,8 +43,9 @@ The full image reads weights directly from its baked model directory and does no
 | Enhance | Sidon restores a single voice; mono 48 kHz output, with an original/restored mix control |
 | Split speakers | MossFormer2 separates a mixture into two mono 16 kHz tracks |
 | Split, then enhance | Separates first, then restores each track; two mono 48 kHz outputs |
+| Convert only | Changes audio format without loading a model; preserves channels (MP3 exports support up to two) |
 
-Upload WAV, FLAC, OGG, AIFF or another format supported by the installed libsndfile. Input is downmixed to mono. Compare the original and results with waveform players, seek, volume and speed controls. Download individual tracks or a ZIP with a processing manifest. Choose float32 WAV to retain samples above full scale, or 24-bit FLAC; FLAC clips samples outside its PCM range and the UI reports that condition.
+Upload WAV, FLAC, Opus, MP3, AAC/M4A, OGG, AIFF, WebM audio or another supported audio recording. Enhancement/separation downmix to mono; Convert preserves channels. Download WAV (float32), FLAC (24-bit), Opus (96 kbps VBR), MP3 (192 kbps), AAC/M4A (192 kbps) or Ogg Vorbis (quality 5), individually or in a ZIP manifest. WAV/FLAC preserve the workflow sample rate; compressed exports use 48 kHz. Float WAV retains samples above full scale; FLAC clips them and the UI reports that condition. See [audio formats](docs/audio-formats.md).
 
 System provides model load/unload controls, server defaults, retained-job history and demand-driven GPU charts. Models also load automatically when a job needs them. Settings survive container replacement through the data volume.
 
@@ -83,7 +84,7 @@ curl -OJ http://localhost:7868/api/jobs/JOB_ID/files/results.zip
 curl -X DELETE http://localhost:7868/api/jobs/JOB_ID
 ```
 
-Submission returns HTTP 202 with an `id`. Poll until `status` is `done` or `failed`. Completed jobs list each track's filename, sample rate, duration and count of samples above full scale. Use `mode=separate` or `mode=separate_enhance` for the other workflows. Defaults are read when a job is submitted.
+Submission returns HTTP 202 with an `id`. Poll until `status` is `done` or `failed`. Completed jobs list each track's filename, sample rate, channels, duration and count of source samples above full scale. Use `mode=separate`, `mode=separate_enhance`, or `mode=convert`. Output formats are `wav`, `flac`, `opus`, `mp3`, `m4a`, `aac`, and `ogg`. Defaults are read when a job is submitted.
 
 Completed jobs and ZIP manifests also record the selected inference backends and
 runtime version, so results can be traced to the processing path used.
@@ -121,6 +122,9 @@ uv run --locked pytest -q
 ```
 
 The project lock uses the CUDA 12.8 PyTorch index explicitly. Docker installs a separate fully hashed Linux/CPython 3.13 runtime lock. Regenerate it with `pwsh -File scripts/lock-runtime.ps1`; check it with `-Check 1`. `Taskfile.yml` provides matching setup, studio, test and image tasks.
+
+Native installations also need `ffmpeg` and `ffprobe` on PATH for compressed
+exports and additional upload formats. Both are included in the Docker images.
 
 Preview the README-driven project website with `task pages`, or build it with
 `task pages-build`. The separate static-site builder uses no inference models or
@@ -187,6 +191,8 @@ here with their source tags and verified full, tiny and source OCI index digests
   [measurements and precision tradeoffs](docs/performance.md).
 - Persist model and compiled-kernel caches, settings and retained audio through
   one volume; record runtime versions and selected backends in job manifests.
+- Add model-free format conversion, broader uploads through FFmpeg, and WAV,
+  FLAC, Opus, MP3, AAC/M4A and Vorbis downloads across all workflows.
 
 </details>
 

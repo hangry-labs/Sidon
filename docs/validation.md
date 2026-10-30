@@ -31,12 +31,12 @@ loading, concurrent GPU use and compiler warm-up affect elapsed time.
 
 ## Tests and interface
 
-- 86 tests passed on the Windows Python 3.13 environment, with four CUDA/Triton
-  kernel cases skipped because the native Windows environment lacks Triton.
+- 105 tests passed on the Windows Python 3.13 environment, with five skips
+  (four CUDA/Triton cases and one unavailable symlink case).
 - All 13 native-backend tests passed separately in the Linux GPU container,
   including four bit-exact fused-kernel cases and initialization fallback checks.
-- The packaged Linux CPU runtime passed 85 tests, with five skips (four GPU kernel
-  cases and one test needing Git). The kernel cases are separately exercised in
+- The packaged Linux CPU runtime passed 103 tests, with seven skips (four GPU kernel
+  cases and three tests needing Git). The kernel cases are separately exercised in
   the GPU container. Tests cover chunk tails and swaps, silence, resampling,
   model hash rejection, source identity/tamper checks, arbitrary gain, API jobs,
   queue/residency conflicts, auth, invalid inputs, limits, settings and expiry.
@@ -49,15 +49,15 @@ loading, concurrent GPU use and compiler warm-up affect elapsed time.
 
 ## Distribution evidence
 
-The runtime collector records 66 Python distributions and 131 Debian packages,
+The runtime collector records 66 Python distributions and 326 Debian packages,
 with no missing-notice flags. Metadata omissions were checked against included
 license texts; notably pathspec's MPL-2.0 notice is supplied with its matching
 source despite its empty license metadata. The source target checks exact Debian
 source identities and reviewed wheel native hashes, downloads matching sources,
 and verifies sizes and SHA256 values before marking its manifest complete.
 
-The optimized image's source manifest contains 255 verified files, including
-the compiler/header sources needed for the local Triton launcher. Original
+The current image's source manifest contains 719 verified files, including
+FFmpeg/codecs and the compiler/header sources needed for the local Triton launcher. Original
 audio.cpp conversion attribution is retained alongside the other source notices.
 
 The qualified wheel-source policy covers torch, numpy, scipy, soundfile, certifi,
@@ -68,6 +68,21 @@ software or independently guarantee model training provenance.
 Use `scripts/smoke_api.py --input YOUR_AUDIO --url http://localhost:7868` to repeat
 real-model API checks. Provide your own authorized audio; weights are not mocked
 by that script. CPU-only CI unit tests do not run the real checkpoints.
+
+## Audio conversion follow-up, 2026-10-30
+
+All seven output formats passed conversion, download, ZIP manifest and reupload
+checks. WAV conversion preserves stereo samples exactly; compressed round trips
+are checked for channels, rate, finite audio and duration with codec padding.
+Tests cover peak handling, MP3 downmix and playlist rejection. The full and tiny
+images both passed real codec conversion with Docker networking disabled and no
+model downloads. The full image additionally ran all three inference workflows
+with Opus exports, using the optimized restoration backend.
+
+Browser checks exercised Opus upload to M4A conversion, download, zero model
+loads and the new Convert tab at 320, 390, 768 and 1440 pixels without horizontal
+overflow. Repeat with `python scripts/smoke_formats.py --input YOUR_AUDIO` and add
+`--inference` to exercise actual models. This script deletes its completed jobs.
 
 ## Remaining qualification limits
 

@@ -1,7 +1,30 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 .audio-comparison { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1.25rem; margin:2rem 0; }
-.comparison-card { min-width:0; padding:1.5rem; border:1px solid #ffffff24; border-radius:16px; background:#111820c9; }
+.comparison-card { min-width:0; padding:1.5rem; border:1px solid #ff963333; border-radius:16px; background:#181411e8; }
 .audio-comparison .comparison-card h3 { margin:.6rem 0; padding:0; border:0; }
 .comparison-label { color:#f5b45b; font-size:.8rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
 .comparison-card audio { display:block; width:100%; margin:1.25rem 0; }
+.comparison-card audio[hidden] { display:none; }
+.comparison-player { margin:1.25rem 0; padding:12px; border:1px solid #ff96332e; border-radius:12px; background:#100e0c; color:#eadfd5; }
+.comparison-player .player-transport { display:grid; grid-template-columns:36px minmax(0,1fr) auto; gap:10px; align-items:center; }
+.comparison-player button { display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; padding:0; border:1px solid #ff96333d; border-radius:8px; background:#241a12; color:#ffbb87; font:inherit; cursor:pointer; }
+.comparison-player button:hover { background:#392414; border-color:#ff963380; }
+.comparison-player .player-play { width:36px; height:36px; background:#ff912b; color:#17100b; border-color:#ff912b; }
+.comparison-player .player-play:hover { background:#ffb168; }
+.comparison-player svg { width:18px; height:18px; fill:currentColor; }
+.comparison-player .player-clock { white-space:nowrap; color:#c8b5a4; font:11px/1.5 ui-monospace,monospace; font-variant-numeric:tabular-nums; }
+.comparison-player .player-options { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:10px; }
+.comparison-player .player-speed { min-width:44px; height:28px; padding:0 8px; font-size:12px; }
+.comparison-player .player-volume { display:flex; align-items:center; gap:8px; min-width:0; }
+.comparison-player .player-mute { width:28px; height:28px; }
+.comparison-player input[type=range] { appearance:none; display:block; width:100%; min-width:0; height:24px; margin:0; cursor:pointer; background:transparent; accent-color:#ff9633; }
+.comparison-player input::-webkit-slider-runnable-track { height:4px; border-radius:4px; background:linear-gradient(to right,#ff9633 var(--fill,0%),#493222 var(--fill,0%)); }
+.comparison-player input::-webkit-slider-thumb { appearance:none; width:12px; height:12px; margin-top:-4px; border:1px solid #ffc080; border-radius:50%; background:#ff9633; }
+.comparison-player input::-moz-range-track { height:4px; border-radius:4px; background:#493222; }
+.comparison-player input::-moz-range-progress { height:4px; border-radius:4px; background:#ff9633; }
+.comparison-player input::-moz-range-thumb { width:12px; height:12px; border:1px solid #ffc080; border-radius:50%; background:#ff9633; }
+.comparison-player .player-volume input { width:76px; }
+.comparison-player :is(button,input):focus-visible { outline:2px solid #ffc080; outline-offset:3px; }
+.comparison-player :disabled { opacity:.45; cursor:wait; }
+.comparison-player .player-error { margin:.5rem 0 0; color:#ffc080; font-size:.8rem; }
 @media(max-width:700px) { .audio-comparison { grid-template-columns:minmax(0,1fr); } .comparison-card { padding:1rem; } }

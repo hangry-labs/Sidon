@@ -12,7 +12,8 @@ restoration that helps rough recordings sound their best.”
 - **Enhance:** restore noisy or degraded single-speaker speech at 48 kHz.
 - **Split:** get two 16 kHz speaker tracks with MossFormer2.
 - **Split, then enhance:** restore both separated tracks at 48 kHz.
-- Compare waveform players; download float WAV or 24-bit FLAC, individual tracks or a ZIP.
+- **Convert:** change formats without loading an inference model; preserve channels (MP3 supports up to two).
+- Upload WAV, FLAC, Opus, MP3, AAC/M4A, OGG, AIFF or WebM audio. Download float WAV, 24-bit FLAC, Opus, MP3, AAC/M4A or Ogg Vorbis, individually or in a ZIP.
 - System controls model residency, persisted defaults and live GPU telemetry.
 - Supported CUDA hosts automatically use the optimized F32 restoration path, with
   a fused vocoder activation and a folded encoder for longer windows. The first
@@ -50,7 +51,11 @@ curl http://localhost:7868/api/jobs/JOB_ID
 curl -OJ http://localhost:7868/api/jobs/JOB_ID/files/results.zip
 ```
 
-Submission returns HTTP 202 and a job ID. Wait for `status=done` before downloading. Modes: `enhance`, `separate`, `separate_enhance`. Full schema: `/openapi.json`; examples are also in the UI's API tab.
+Submission returns HTTP 202 and a job ID. Wait for `status=done` before downloading. Modes: `enhance`, `separate`, `separate_enhance`, `convert`. Set `output_format` to `wav`, `flac`, `opus`, `mp3`, `m4a`, `aac`, or `ogg`. Full schema: `/openapi.json`; examples are also in the UI's API tab.
+
+Conversion-only WAV/FLAC retains sample rate/channels. Compressed exports use
+48 kHz: Opus 96 kbps VBR, MP3/AAC 192 kbps, Ogg Vorbis quality 5. Enhancement
+and separation remain mono. FFmpeg and its matching sources/notices are included.
 
 ## Configuration and privacy
 

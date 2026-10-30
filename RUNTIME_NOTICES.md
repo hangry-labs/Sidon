@@ -130,3 +130,13 @@ Precision flags are restored afterwards; service inference is serialized.
 Triton uses the installed C compiler for a local launcher. Compiler/header notices
 and corresponding source are included with the image's dependency records.
 Cached kernels contain compiled program code, not audio.
+
+## Audio conversion
+
+FFmpeg and ffprobe are installed as Debian runtime packages for additional upload
+containers and Opus, MP3, AAC/M4A and Vorbis exports. The application invokes them
+as separate processes; their GPL/LGPL component licenses remain in force. The
+runtime inventory retains their Debian copyright notices and exact source
+identities, and the matching source image includes their corresponding sources.
+Native Python installs use an operator-installed FFmpeg rather than a bundled
+executable. No conversion codec or model weights are added to the Python wheel.

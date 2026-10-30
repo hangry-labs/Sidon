@@ -29,6 +29,7 @@ import torch
 
 from sidon import __version__
 from .gpu import GpuMonitor
+from .audio import OutputFormat, decode_input, encode_file, encode_audio
 
 LOG = logging.getLogger("sidon")
 STATIC = Path(__file__).parent / "static"
@@ -37,7 +38,7 @@ STATIC = Path(__file__).parent / "static"
 class Settings(BaseModel):
     model_config = ConfigDict(extra="forbid", allow_inf_nan=False)
     strength: float = Field(default=1, ge=0, le=1)
-    output_format: Literal["wav", "flac"] = "wav"
+    output_format: OutputFormat = "wav"
     chunk_seconds: float = Field(default=4, ge=2, le=16)
     overlap_seconds: float = Field(default=1, ge=0.1, le=2)
 
@@ -57,23 +58,6 @@ def write_json(path: Path, value: dict):
     temporary = path.with_suffix(".tmp")
     temporary.write_text(json.dumps(value, indent=2) + "\n", encoding="utf-8")
     temporary.replace(path)
-
-
-def decode_input(source: Path, destination: Path, max_seconds: int) -> float:
-    """Downmix in bounded blocks; compressed multichannel input cannot inflate RAM."""
-    with sf.SoundFile(source) as stream:
-        if stream.frames <= 0 or not 8000 <= stream.samplerate <= 192000 or not 1 <= stream.channels <= 8 or stream.frames / stream.samplerate > max_seconds:
-            raise HTTPException(422, "Use a nonempty clip within the duration limit, 8–192 kHz, and at most 8 channels")
-        total = 0
-        with sf.SoundFile(destination, "w", samplerate=stream.samplerate, channels=1, subtype="FLOAT", format="WAV") as output:
-            for block in stream.blocks(blocksize=65536, dtype="float32", always_2d=True):
-                total += len(block)
-                if total > max_seconds * stream.samplerate or not np.isfinite(block).all():
-                    raise HTTPException(422, "Audio exceeds the duration limit or contains nonfinite samples")
-                output.write(block.mean(axis=1))
-        if not total:
-            raise HTTPException(422, "The audio file is empty")
-        return total / stream.samplerate
 
 
 class Runtime:
@@ -151,19 +135,22 @@ class Runtime:
         started = time.monotonic()
         job = self.jobs[job_id]
         directory = self.root / "jobs" / job_id
-        self.update(job_id, status="running", stage="Loading models")
+        self.update(job_id, status="running", stage="Converting audio" if job["mode"] == "convert" else "Loading models")
         try:
             with self.model_lock:
-                audio, rate = sf.read(directory / "input.wav", dtype="float32")
                 options = job["settings"]
+                if job["mode"] == "convert":
+                    tracks = []
+                else:
+                    audio, rate = sf.read(directory / "input.wav", dtype="float32")
                 if job["mode"] in {"separate", "separate_enhance"}:
                     separator = self.load("separate")
                     self.update(job_id, stage="Splitting speakers")
                     sources, source_rate = separator.separate(audio, rate, chunk_seconds=options["chunk_seconds"], overlap_seconds=options["overlap_seconds"])
                     tracks = [("speaker_1", sources[0], source_rate), ("speaker_2", sources[1], source_rate)]
-                else:
+                elif job["mode"] != "convert":
                     tracks = [("enhanced", audio, rate)]
-                if job["mode"] != "separate":
+                if job["mode"] in {"enhance", "separate_enhance"}:
                     restorer = self.load("enhance")
                     restored = []
                     for name, data, source_rate in tracks:
@@ -172,12 +159,14 @@ class Runtime:
                         restored.append((name, data, source_rate))
                     tracks = restored
                 outputs = []
+                if job["mode"] == "convert":
+                    track = encode_file(directory / "input.wav", directory / f"converted.{options['output_format']}", options['output_format'])
+                    outputs.append(dict(name="converted", **track))
                 for name, data, source_rate in tracks:
                     filename = f"{name}.{options['output_format']}"
-                    clipped = int(np.count_nonzero(np.abs(data) > 1))
-                    sf.write(directory / filename, data, source_rate, subtype="FLOAT" if options["output_format"] == "wav" else "PCM_24")
-                    outputs.append(dict(name=name, file=filename, sample_rate=source_rate, duration=len(data) / source_rate, samples_over_full_scale=clipped))
-                used = ["enhance"] if job["mode"] == "enhance" else ["separate"] if job["mode"] == "separate" else ["separate", "enhance"]
+                    track = encode_audio(data, source_rate, directory / filename, options['output_format'])
+                    outputs.append(dict(name=name, **track))
+                used = [] if job["mode"] == "convert" else ["enhance"] if job["mode"] == "enhance" else ["separate"] if job["mode"] == "separate" else ["separate", "enhance"]
                 backends = {name: getattr(self.models[name], "backend", "torch-fp32") for name in used}
                 self.update(job_id, stage="Packaging results", outputs=outputs, backends=backends,
                             runtime_version=__version__, elapsed_seconds=round(time.monotonic() - started, 3))
@@ -189,7 +178,8 @@ class Runtime:
                 self.update(job_id, status="done", stage="Complete")
         except Exception:
             LOG.exception("Audio job %s failed", job_id)
-            self.update(job_id, status="failed", stage="Failed", error="Audio processing failed. Check model readiness in System and the service logs, then retry with a shorter clip.")
+            error = "Audio conversion failed. Try WAV/FLAC, or check FFmpeg and codec support in the service logs." if job["mode"] == "convert" else "Audio processing failed. Check model readiness and codec support in the service logs, then retry with a shorter clip."
+            self.update(job_id, status="failed", stage="Failed", error=error)
 
 
 def create_app(data_dir: Path | None = None) -> FastAPI:
@@ -268,7 +258,7 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
                     models=dict(runtime.model_states), model_errors=dict(runtime.model_errors), busy=runtime.model_lock.locked(),
                     backends={name: getattr(model, "backend", "torch-fp32") for name, model in dict(runtime.models).items()},
                     limits=dict(upload_mb=runtime.max_bytes // 1024**2, audio_seconds=runtime.max_seconds, retention_hours=runtime.retention / 3600),
-                    settings=runtime.settings.model_dump(), modes=["enhance", "separate", "separate_enhance"])
+                    settings=runtime.settings.model_dump(), modes=["enhance", "separate", "separate_enhance", "convert"])
 
     @app.put("/api/settings", dependencies=dependencies)
     def settings(value: Settings):
@@ -307,8 +297,8 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
         return JSONResponse(runtime.gpu.request_snapshot(), headers={"Cache-Control": "no-store"})
 
     @app.post("/api/jobs", status_code=202, dependencies=dependencies)
-    async def submit(file: UploadFile = File(...), mode: Literal["enhance", "separate", "separate_enhance"] = Form("enhance"),
-                     strength: float | None = Form(None, ge=0, le=1, allow_inf_nan=False), output_format: Literal["wav", "flac"] | None = Form(None)):
+    async def submit(file: UploadFile = File(...), mode: Literal["enhance", "separate", "separate_enhance", "convert"] = Form("enhance"),
+                     strength: float | None = Form(None, ge=0, le=1, allow_inf_nan=False), output_format: OutputFormat | None = Form(None)):
         with runtime.state_lock:
             if sum(j["status"] in {"uploading", "queued", "running"} for j in runtime.jobs.values()) >= 4:
                 raise HTTPException(429, "The audio queue is full. Retry when a job finishes.")
@@ -328,7 +318,7 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
                     if size > runtime.max_bytes:
                         raise HTTPException(413, "Audio exceeds the upload limit")
                     stream.write(chunk)
-            duration = await asyncio.to_thread(decode_input, directory / "upload", directory / "input.wav", runtime.max_seconds)
+            duration = await asyncio.to_thread(decode_input, directory / "upload", directory / "input.wav", runtime.max_seconds, preserve_channels=mode == "convert")
             (directory / "upload").unlink()
             runtime.update(job_id, status="queued", stage="Queued", duration=duration)
             runtime.pool.submit(runtime.process, job_id)
@@ -340,7 +330,7 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
         except Exception:
             runtime.jobs.pop(job_id, None)
             shutil.rmtree(directory, ignore_errors=True)
-            raise HTTPException(422, "Could not decode this file. Upload WAV, FLAC, OGG or another libsndfile-supported audio file.")
+            raise HTTPException(422, "Could not decode this file. Use an audio recording such as WAV, FLAC, Opus, MP3, AAC/M4A or OGG. Native installs need FFmpeg for additional formats.")
         finally:
             await file.close()
 

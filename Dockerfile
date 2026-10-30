@@ -13,7 +13,7 @@ RUN python -m pip install --only-binary=:all: --require-hashes -r requirements.r
 FROM dependencies AS kernel-runtime
 # Triton's CUDA launcher builds a small local helper. Its compiler and headers
 # are inventoried with the runtime and covered by the matching source image.
-RUN apt-get update && apt-get install -y --no-install-recommends gcc libc6-dev \
+RUN apt-get update && apt-get install -y --no-install-recommends gcc libc6-dev ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
 FROM kernel-runtime AS model-assets

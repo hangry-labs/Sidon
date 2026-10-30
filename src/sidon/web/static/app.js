@@ -34,23 +34,26 @@ inputPlayer.root.ondragover = e => { e.preventDefault(); inputPlayer.root.classL
 inputPlayer.root.ondragleave = () => inputPlayer.root.classList.remove('dragging');
 inputPlayer.root.ondrop = guarded(async e => { e.preventDefault(); inputPlayer.root.classList.remove('dragging'); await selectFile(e.dataTransfer.files[0]); });
 function modeChanged() {
-  const mode = $('#mode').value, separation = mode !== 'enhance';
-  $('#strength-field').hidden = mode === 'separate';
-  $('#mode-help').textContent = separation ? 'Separate a two-person mixture with MossFormer2. Add enhancement to restore each voice afterwards.' : 'Restore noisy or degraded speech with Sidon. Best suited to a single voice.';
-  $('#output-help').textContent = mode === 'separate' ? 'Two mono tracks at 16 kHz.' : separation ? 'Two enhanced mono tracks at 48 kHz.' : 'Enhanced audio: mono, 48 kHz.';
-  $('#process span').textContent = mode === 'enhance' ? 'Enhance audio' : mode === 'separate' ? 'Split speakers' : 'Split & enhance';
-  $('#workflow-title').textContent = separation ? 'Give each speaker their own track' : 'Give your voice a cleaner finish';
+  const mode = $('#mode').value, conversion = mode === 'convert', separation = ['separate','separate_enhance'].includes(mode);
+  const lossless = ['wav','flac'].includes($('#output-format').value);
+  $('#strength-field').hidden = !['enhance','separate_enhance'].includes(mode);
+  $('#mode-help').textContent = conversion ? 'Change audio format without loading a model or applying enhancement.' : separation ? 'Separate a two-person mixture with MossFormer2. Add enhancement to restore each voice afterwards.' : 'Restore noisy or degraded speech with Sidon. Best suited to a single voice.';
+  $('#output-help').textContent = conversion ? (lossless ? 'Keeps the input sample rate and channels.' : 'Compressed output at 48 kHz. MP3 supports up to two channels.') : mode === 'separate' ? `Two mono tracks at ${lossless ? 16 : 48} kHz.` : separation ? 'Two enhanced mono tracks at 48 kHz.' : 'Enhanced audio: mono, 48 kHz.';
+  $('#process span').textContent = conversion ? 'Convert audio' : mode === 'enhance' ? 'Enhance audio' : mode === 'separate' ? 'Split speakers' : 'Split & enhance';
+  $('#workflow-title').textContent = conversion ? 'Your audio, in the format you need' : separation ? 'Give each speaker their own track' : 'Give your voice a cleaner finish';
 }
-$('#mode').onchange = () => { if ($('#mode').value === 'enhance') changeView('enhance', false); else changeView('separate', false); modeChanged(); };
+$('#mode').onchange = () => { changeView(['enhance','convert'].includes($('#mode').value) ? $('#mode').value : 'separate', false); };
+$('#output-format').onchange = modeChanged;
 $('#strength').oninput = () => { $('#strength-value').textContent = `${Math.round(+$('#strength').value * 100)}%`; };
 function changeView(next, setMode = true) {
-  if (!['enhance','separate','api','system'].includes(next)) next = 'enhance'; view = next;
+  if (!['enhance','separate','convert','api','system'].includes(next)) next = 'enhance'; view = next;
   sessionStorage.setItem('sidon-tab', view); history.replaceState(null, '', `#${view}`);
-  $('#view-process').hidden = !['enhance','separate'].includes(view); $('#view-api').hidden = view !== 'api'; $('#view-system').hidden = view !== 'system';
-  $('#view-process').setAttribute('aria-labelledby', `tab-${view === 'separate' ? 'separate' : 'enhance'}`);
+  $('#view-process').hidden = !['enhance','separate','convert'].includes(view); $('#view-api').hidden = view !== 'api'; $('#view-system').hidden = view !== 'system';
+  $('#view-process').setAttribute('aria-labelledby', `tab-${['separate','convert'].includes(view) ? view : 'enhance'}`);
   for (const tab of document.querySelectorAll('[role=tab]')) { const active = tab.dataset.view === view; tab.classList.toggle('active', active); tab.ariaSelected = String(active); tab.tabIndex = active ? 0 : -1; }
   if (setMode && view === 'enhance') $('#mode').value = 'enhance';
-  if (setMode && view === 'separate' && $('#mode').value === 'enhance') $('#mode').value = 'separate';
+  if (setMode && view === 'convert') $('#mode').value = 'convert';
+  if (setMode && view === 'separate' && ['enhance','convert'].includes($('#mode').value)) $('#mode').value = 'separate';
   modeChanged(); scheduleGpu(); if (view === 'system') refreshHistory().catch(() => {});
 }
 document.querySelectorAll('[data-view]').forEach(el => { el.onclick = e => { e.preventDefault(); changeView(el.dataset.view); }; });
@@ -63,7 +66,7 @@ async function refreshStatus(applyDefaults = false) {
   $('#runtime-badge').dataset.state = 'ready'; $('#version').textContent = `v${state.version}`;
   $('#system-runtime').textContent = `Sidon ${state.version} · ${state.device}`;
   $('#limits').textContent = `Up to ${state.limits.upload_mb} MB and ${state.limits.audio_seconds / 60} minutes per file. Results and uploaded audio expire after ${state.limits.retention_hours} hours. Four active jobs maximum, processed one at a time.`;
-  if (applyDefaults) { $('#strength').value = state.settings.strength; $('#strength').oninput(); $('#output-format').value = state.settings.output_format; $('#chunk-seconds').value = state.settings.chunk_seconds; $('#overlap-seconds').value = state.settings.overlap_seconds; }
+  if (applyDefaults) { $('#strength').value = state.settings.strength; $('#strength').oninput(); $('#output-format').value = state.settings.output_format; $('#chunk-seconds').value = state.settings.chunk_seconds; $('#overlap-seconds').value = state.settings.overlap_seconds; modeChanged(); }
   const models = $('#models'); models.replaceChildren();
   for (const [name, status] of Object.entries(state.models)) {
     const row = document.createElement('div'); row.className = 'model-row';
@@ -79,9 +82,9 @@ async function showResults(job) {
   clearOutputs();
   for (const track of job.outputs) {
     const endpoint = `/api/jobs/${job.id}/files/${track.file}`;
-    const player = new Player($('#outputs'), track.name === 'enhanced' ? 'Enhanced audio' : track.name.replace('_', ' '), {download: guarded(() => download(endpoint, track.file))}); outputPlayers.push(player);
+    const player = new Player($('#outputs'), track.name === 'enhanced' ? 'Enhanced audio' : track.name === 'converted' ? 'Converted audio' : track.name.replace('_', ' '), {download: guarded(() => download(endpoint, track.file))}); outputPlayers.push(player);
     await player.load(await (await request(endpoint)).blob(), `${track.sample_rate / 1000} kHz · ${job.settings.output_format.toUpperCase()}`);
-    if (track.samples_over_full_scale) { const warning = document.createElement('p'); warning.className = 'help'; warning.textContent = job.settings.output_format === 'flac' ? 'Some samples exceeded full scale and were clipped by the FLAC encoding. Use float WAV to retain them.' : 'Some samples exceed full scale. Float WAV preserves them; lower playback volume if needed.'; player.root.append(warning); }
+    if (track.samples_over_full_scale) { const warning = document.createElement('p'); warning.className = 'help'; warning.textContent = job.settings.output_format === 'flac' ? 'Some samples exceeded full scale and were clipped by the FLAC encoding. Use float WAV to retain them.' : job.settings.output_format === 'wav' ? 'Some samples exceed full scale. Float WAV preserves them; lower playback volume if needed.' : 'Some source samples exceeded full scale. Choose float WAV to preserve those peaks.'; player.root.append(warning); }
   }
   $('#download-all').disabled = $('#delete').disabled = false;
 }
@@ -110,7 +113,7 @@ async function refreshHistory() {
   for (const job of jobs.slice(0, 25)) {
     const row = document.createElement('div'); row.className = 'history-item'; const text = document.createElement('span'); text.textContent = `${job.filename} · ${job.status}`;
     const button = document.createElement('button'); button.className = 'text-button'; button.textContent = 'Open'; button.disabled = running;
-    button.onclick = guarded(async () => { activeJob = job.id; changeView(job.mode === 'enhance' ? 'enhance' : 'separate'); $('#mode').value = job.mode; $('#strength').value = job.settings.strength; $('#strength').oninput(); $('#output-format').value = job.settings.output_format; modeChanged(); const blob = await (await request(`/api/jobs/${job.id}/files/input.wav`)).blob(); file = new File([blob], job.filename, {type:'audio/wav'}); await inputPlayer.load(blob, job.filename); setRunning(['queued','running'].includes(job.status)); await pollJob(); });
+    button.onclick = guarded(async () => { activeJob = job.id; changeView(['enhance','convert'].includes(job.mode) ? job.mode : 'separate'); $('#mode').value = job.mode; $('#strength').value = job.settings.strength; $('#strength').oninput(); $('#output-format').value = job.settings.output_format; modeChanged(); const blob = await (await request(`/api/jobs/${job.id}/files/input.wav`)).blob(); file = new File([blob], job.filename, {type:'audio/wav'}); await inputPlayer.load(blob, job.filename); setRunning(['queued','running'].includes(job.status)); await pollJob(); });
     row.append(text, button); $('#history').append(row);
   }
   if (!jobs.length) $('#history').textContent = 'No retained jobs.';
