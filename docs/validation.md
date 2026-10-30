@@ -31,11 +31,11 @@ loading, concurrent GPU use and compiler warm-up affect elapsed time.
 
 ## Tests and interface
 
-- 105 tests passed on the Windows Python 3.13 environment, with five skips
+- 116 tests passed on the Windows Python 3.13 environment, with five skips
   (four CUDA/Triton cases and one unavailable symlink case).
 - All 13 native-backend tests passed separately in the Linux GPU container,
   including four bit-exact fused-kernel cases and initialization fallback checks.
-- The packaged Linux CPU runtime passed 103 tests, with seven skips (four GPU kernel
+- The packaged Linux CPU runtime passed 114 tests, with seven skips (four GPU kernel
   cases and three tests needing Git). The kernel cases are separately exercised in
   the GPU container. Tests cover chunk tails and swaps, silence, resampling,
   model hash rejection, source identity/tamper checks, arbitrary gain, API jobs,
@@ -83,6 +83,25 @@ Browser checks exercised Opus upload to M4A conversion, download, zero model
 loads and the new Convert tab at 320, 390, 768 and 1440 pixels without horizontal
 overflow. Repeat with `python scripts/smoke_formats.py --input YOUR_AUDIO` and add
 `--inference` to exercise actual models. This script deletes its completed jobs.
+
+## Public API and queue follow-up, 2026-10-30
+
+The versioned API and queue follow-up exercised eight simultaneous submissions
+competing for one free slot: one was accepted and seven received 429 with retry
+headers. Tests cover FIFO positions, removable queued cancellation, cooperative
+running cancellation, decoder cleanup after disconnect, shared data-directory
+ownership, structured errors, body-size limits and legacy API behavior.
+Cancellation checks leave outputs bit-identical on the tested 23.112-second
+restoration input and 7.704-second separation input when no cancellation occurs.
+
+Real offline full-image checks exercised the versioned direct enhancement,
+separation, split-then-enhance and conversion routes, plus asynchronous responses.
+The tiny image passed versioned conversion without network/model downloads.
+The official OpenAI Python SDK successfully listed/retrieved our model catalog
+and parsed a structured missing-model error with its request ID. This validates
+those conventions, not OpenAI speech-endpoint compatibility. Browser checks
+exercised queue position, pending cancellation/deletion and System queue counts.
+Repeat native endpoint checks with `scripts/smoke_public_api.py`.
 
 ## Remaining qualification limits
 

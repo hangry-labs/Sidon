@@ -2,8 +2,6 @@
 
 <p align="center"><a href="https://hangry-labs.github.io/Sidon/examples/?lang=en"><strong>🎧 Hear the before-and-after comparison</strong></a></p>
 
-# Sidon
-
 Development version **v1.0.0-snapshot**, targeting the first **v1.0.0** release.
 See the [version history](#version-history).
 
@@ -76,7 +74,24 @@ Stable tags are never overwritten. Tag builds do not move `latest`; manual publi
 
 ## API
 
-The studio uses a native job API; it does not claim an OpenAI audio-restoration standard. Examples below use Bash/cURL (`curl.exe` avoids PowerShell's legacy alias).
+The public `/v1` API uses OpenAI-style authentication, `model`, `response_format`,
+model discovery and structured errors. Audio restoration/separation/conversion
+are **native Sidon extensions**, not OpenAI speech endpoints. There is no streaming:
+clients submit each complete chunk independently. See the [API guide](docs/api.md).
+
+```bash
+curl http://localhost:7868/v1/models
+curl -X POST http://localhost:7868/v1/audio/enhancements -F file=@voice.wav -F response_format=opus --output restored.opus
+curl -X POST http://localhost:7868/v1/audio/conversions -F file=@voice.m4a -F response_format=flac --output converted.flac
+```
+
+Direct requests wait for an audio file (or a two-track ZIP for separations).
+Add `response_mode=job` for HTTP 202, then use `/v1/audio/jobs/JOB_ID` to poll,
+download or cancel. `/v1/audio/queue` reports live admission and processing counts.
+Versioned requests use fixed documented defaults independent of Studio settings.
+
+The existing Studio job API remains supported, including its saved defaults and
+legacy error shape. Examples below use Bash/cURL (`curl.exe` avoids PowerShell's legacy alias).
 
 ```bash
 curl -X POST http://localhost:7868/api/jobs -F file=@voice.wav -F mode=enhance -F strength=1 -F output_format=wav
@@ -85,14 +100,14 @@ curl -OJ http://localhost:7868/api/jobs/JOB_ID/files/results.zip
 curl -X DELETE http://localhost:7868/api/jobs/JOB_ID
 ```
 
-Submission returns HTTP 202 with an `id`. Poll until `status` is `done` or `failed`. Completed jobs list each track's filename, sample rate, channels, duration and count of source samples above full scale. Use `mode=separate`, `mode=separate_enhance`, or `mode=convert`. Output formats are `wav`, `flac`, `opus`, `mp3`, `m4a`, `aac`, and `ogg`. Defaults are read when a job is submitted.
+Submission returns HTTP 202 with an `id`. Poll until `status` is `done`, `failed` or `cancelled`. Completed jobs list each track's filename, sample rate, channels, duration and count of source samples above full scale. Use `mode=separate`, `mode=separate_enhance`, or `mode=convert`. Output formats are `wav`, `flac`, `opus`, `mp3`, `m4a`, `aac`, and `ogg`. Defaults are read when a job is submitted.
 
 Completed jobs and ZIP manifests also record the selected inference backends and
 runtime version, so results can be traced to the processing path used.
 
 Discovery: `GET /healthz`, `GET /api/status`, `GET /api/jobs`, and `/openapi.json`. Persist defaults with `PUT /api/settings`. Manage residency with `POST /api/models/enhance` or `/api/models/separate` and JSON `{"action":"load"}` or `{"action":"unload"}`. GPU telemetry is `/api/gpu`. The UI's API tab has the same examples.
 
-When `SIDON_API_KEY` is set, all `/api/*` requests require `Authorization: Bearer YOUR_KEY`; enter it in System for browser use. Health, static assets and the API schema remain public. All authorized clients of an instance share its jobs and settings. For hosted workloads, isolate tenants in separate instances and place TLS/access controls at your reverse proxy.
+When `SIDON_API_KEY` is set, all `/api/*` and `/v1/*` requests require `Authorization: Bearer YOUR_KEY`; enter it in System for browser use. Health, static assets and the API schema remain public. All authorized clients of an instance share its jobs and settings. For hosted workloads, isolate tenants in separate instances and place TLS/access controls at your reverse proxy.
 
 ## Runtime settings
 
@@ -109,10 +124,19 @@ When `SIDON_API_KEY` is set, all `/api/*` requests require `Authorization: Beare
 | `HF_HUB_OFFLINE` | full `1`, tiny `0` | Disallow or allow model downloads |
 | `SIDON_MAX_UPLOAD_MB` | `100` | Maximum file size |
 | `SIDON_MAX_AUDIO_SECONDS` | `600` | Maximum decoded clip duration |
+| `SIDON_MAX_ACTIVE_JOBS` | `4` | Total upload/validation/queued/running slots, from 1 to 64; overflow returns 429 with Retry-After |
 | `SIDON_RETENTION_HOURS` | `24` | Automatic uploaded/generated audio expiry |
 | `SIDON_API_KEY` | unset | Optional shared bearer key |
 
-At most four jobs may be active, with one inference worker per process. Run one server process per GPU allocation. Use `--gpus device=0` to select a physical GPU; the published Sidon CUDA export uses logical `cuda:0`. Separation windows default to four seconds with one-second overlaps; adjust and save them in System.
+The default is four active jobs sharing one processing worker. Ready jobs run FIFO;
+uploads count toward admission before multipart parsing. Pending cancellation frees
+its slot immediately; running cancellation waits for a safe boundary. Queue position
+and wait/processing/total timings are exposed through the API. An OS lock prevents
+multiple server processes from owning one data directory. Run one instance per GPU
+allocation; separate instances do not coordinate their queues. Use `--gpus device=0`
+to select a physical GPU; the published Sidon CUDA export uses logical `cuda:0`.
+Separation windows default to four seconds with one-second overlaps; adjust and save
+them in System, or pass per-request window settings to the versioned API.
 
 ## Development
 
@@ -194,6 +218,8 @@ here with their source tags and verified full, tiny and source OCI index digests
   one volume; record runtime versions and selected backends in job manifests.
 - Add model-free format conversion, broader uploads through FFmpeg, and WAV,
   FLAC, Opus, MP3, AAC/M4A and Vorbis downloads across all workflows.
+- Add versioned native audio endpoints with OpenAI-style conventions, direct or
+  asynchronous responses, bounded FIFO admission, queue timings and safe cancellation.
 
 </details>
 

@@ -59,7 +59,7 @@ class SidonRestorer:
         self.backend = "torchscript-fp32"
 
     @torch.inference_mode()
-    def enhance(self, audio: np.ndarray, sample_rate: int, *, strength: float = 1.0) -> tuple[np.ndarray, int]:
+    def enhance(self, audio: np.ndarray, sample_rate: int, *, strength: float = 1.0, cancel_check=None) -> tuple[np.ndarray, int]:
         if not math.isfinite(strength) or not 0 <= strength <= 1:
             raise ValueError("Strength must be between zero and one")
         wave = prepare_audio(audio, sample_rate)
@@ -79,6 +79,8 @@ class SidonRestorer:
         result = torch.zeros(wave.numel() * 3)
         weights = torch.zeros_like(result)
         for start in range(0, wave.numel(), window - overlap):
+            if cancel_check:
+                cancel_check()
             length = min(window, wave.numel() - start)
             # The export needs right context, as in the publisher's demo.
             chunk = F.pad(wave[start:start + length], (0, 24000))

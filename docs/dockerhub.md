@@ -1,4 +1,4 @@
-# Sidon · Hangry Labs
+<p align="center"><img src="https://raw.githubusercontent.com/hangry-labs/Sidon/main/docs/assets/sidon-wordmark.svg" width="560" alt="Sidon · Voice restoration studio"></p>
 
 Development version **v1.0.0-snapshot**, targeting the first **v1.0.0** release.
 
@@ -47,6 +47,22 @@ Main builds publish `latest`, `latest_tiny`, `latest_sources`. Stable Git tags p
 
 ## API
 
+Versioned audio-processing routes use OpenAI-style `model`, `response_format`,
+bearer authentication, model discovery and structured errors. They are native
+Sidon extensions, not OpenAI speech endpoints. No streaming is implemented.
+
+```bash
+curl http://localhost:7868/v1/models
+curl -X POST http://localhost:7868/v1/audio/enhancements -F file=@voice.wav -F response_format=opus --output restored.opus
+curl -X POST http://localhost:7868/v1/audio/conversions -F file=@voice.m4a -F response_format=flac --output converted.flac
+```
+
+Use `/v1/audio/separations` for two-track ZIP output; add `enhance=true` to restore
+both speakers. Add `response_mode=job` for HTTP 202, then poll
+`/v1/audio/jobs/JOB_ID` or cancel through `POST /v1/audio/jobs/JOB_ID/cancel`.
+The [API guide](https://hangry-labs.github.io/Sidon/docs/api.html) covers the full
+contract. The existing Studio API also remains supported:
+
 ```bash
 curl -X POST http://localhost:7868/api/jobs -F file=@voice.wav -F mode=enhance -F strength=1 -F output_format=wav
 curl http://localhost:7868/api/jobs/JOB_ID
@@ -64,6 +80,14 @@ and separation remain mono. FFmpeg and its matching sources/notices are included
 Persist `/app/persistent`. Defaults: 100 MB/file, 600 seconds/file, four active jobs, one inference worker, 24-hour audio/result retention. Change with `SIDON_MAX_UPLOAD_MB`, `SIDON_MAX_AUDIO_SECONDS`, `SIDON_RETENTION_HOURS`. `SIDON_DEVICE=auto` chooses CUDA when available, otherwise CPU.
 
 Set `SIDON_API_KEY` before exposing the service; clients send `Authorization: Bearer YOUR_KEY`. All clients share one instance's jobs/settings. Use separate instances for tenant isolation, and a TLS/authenticated reverse proxy for remote hosting.
+
+Both `/api/*` and `/v1/*` share a bounded queue: four active slots by default,
+including upload parsing and validation, with one processing worker. Configure
+`SIDON_MAX_ACTIVE_JOBS` from 1 to 64. Ready jobs run FIFO; saturation returns 429
+with `Retry-After: 1`. Pending cancellation frees capacity immediately; running
+cancellation is cooperative. `/v1/audio/queue` and job status expose queue position
+and wait/processing/total timings. One OS-locked owner per data directory prevents
+accidental multi-worker corruption; use one instance per GPU allocation.
 
 Audio stays on your server until deletion or expiry. Tiny images download from Hugging Face; full images need no model downloads. Restoration can alter voice character and add artifacts; compare results. Separation always returns two tracks, and ambiguous overlaps may swap labels.
 

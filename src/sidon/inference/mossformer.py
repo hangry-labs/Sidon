@@ -83,6 +83,7 @@ def separate_chunks(
     device: torch.device,
     chunk_seconds: float = 4.0,
     overlap_seconds: float = 1.0,
+    cancel_check=None,
 ) -> torch.Tensor:
     """Return [2, time] at 16 kHz; align speakers and crossfade all overlaps.
 
@@ -107,6 +108,8 @@ def separate_chunks(
     previous_end = 0
     model.eval()
     for start in range(0, total, window - overlap):
+        if cancel_check:
+            cancel_check()
         end = min(start + window, total)
         chunk = torch.nn.functional.pad(waveform[start:end], (0, window - (end - start)))
         if chunk.abs().max() == 0:
@@ -155,8 +158,8 @@ class MossFormer2Separator:
         self.model.to(self.device).eval()
 
     def separate(self, audio: np.ndarray, sample_rate: int, *, chunk_seconds: float = 4.0,
-                 overlap_seconds: float = 1.0) -> tuple[np.ndarray, int]:
+                 overlap_seconds: float = 1.0, cancel_check=None) -> tuple[np.ndarray, int]:
         waveform = prepare_audio(audio, sample_rate)
         result = separate_chunks(self.model, normalize_for_model(waveform), device=self.device,
-                                 chunk_seconds=chunk_seconds, overlap_seconds=overlap_seconds)
+                                 chunk_seconds=chunk_seconds, overlap_seconds=overlap_seconds, cancel_check=cancel_check)
         return restore_source_levels(result, waveform).numpy(), SAMPLE_RATE

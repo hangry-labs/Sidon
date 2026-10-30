@@ -99,7 +99,7 @@ def test_expiry_and_restart_recovery(tmp_path):
     runtime.jobs[job_id]["created"] = time.time() - runtime.retention - 1
     runtime.cleanup()
     assert not directory.exists() and not runtime.jobs
-    runtime.pool.shutdown()
+    runtime.close()
 
 
 def test_queue_and_residency_are_bounded(tmp_path):

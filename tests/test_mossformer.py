@@ -43,6 +43,17 @@ def test_silence_needs_no_model_calls():
     assert torch.count_nonzero(output) == 0
 
 
+def test_separation_cancellation_stops_before_next_window():
+    model = AlternatingSeparator()
+    def cancel():
+        if model.calls:
+            raise RuntimeError('cancelled between windows')
+    with pytest.raises(RuntimeError, match='cancelled between windows'):
+        separate_chunks(model, torch.sin(torch.arange(6400)*.04), device=torch.device('cpu'),
+                        chunk_seconds=.1, overlap_seconds=.025, cancel_check=cancel)
+    assert model.calls == 1
+
+
 def test_resampling_preserves_duration_and_downmixes_without_peak_normalizing():
     stereo = np.full((44100, 2), [0.1, 0.3], dtype=np.float32)
     audio = prepare_audio(stereo, 44100)

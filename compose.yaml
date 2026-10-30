@@ -13,6 +13,7 @@ services:
       SIDON_RESTORATION_BACKEND: ${SIDON_RESTORATION_BACKEND:-auto}
       SIDON_MAX_UPLOAD_MB: "100"
       SIDON_MAX_AUDIO_SECONDS: "600"
+      SIDON_MAX_ACTIVE_JOBS: ${SIDON_MAX_ACTIVE_JOBS:-4}
       SIDON_RETENTION_HOURS: "24"
       # Set SIDON_API_KEY in your shell or .env before exposing the service.
       SIDON_API_KEY: ${SIDON_API_KEY:-}

@@ -64,8 +64,9 @@ async function refreshStatus(applyDefaults = false) {
   const state = await json('/api/status'); lastStatus = state;
   $('#runtime-state').textContent = state.busy ? 'Processing audio' : 'Ready'; $('#runtime-detail').textContent = `${state.device} · ${Object.values(state.models).filter(v => v === 'ready').length} models loaded`;
   $('#runtime-badge').dataset.state = 'ready'; $('#version').textContent = `v${state.version}`;
+  $('#queue-state').textContent = state.queue ? `Queue: ${state.queue.active}/${state.queue.capacity} active · ${state.queue.queued} waiting · ${state.queue.running} running · ${state.queue.uploading} uploading` : '';
   $('#system-runtime').textContent = `Sidon ${state.version} · ${state.device}`;
-  $('#limits').textContent = `Up to ${state.limits.upload_mb} MB and ${state.limits.audio_seconds / 60} minutes per file. Results and uploaded audio expire after ${state.limits.retention_hours} hours. Four active jobs maximum, processed one at a time.`;
+  $('#limits').textContent = `Up to ${state.limits.upload_mb} MB and ${state.limits.audio_seconds / 60} minutes per file. Results and uploaded audio expire after ${state.limits.retention_hours} hours. ${state.limits.active_jobs || 4} active jobs maximum, processed one at a time.`;
   if (applyDefaults) { $('#strength').value = state.settings.strength; $('#strength').oninput(); $('#output-format').value = state.settings.output_format; $('#chunk-seconds').value = state.settings.chunk_seconds; $('#overlap-seconds').value = state.settings.overlap_seconds; modeChanged(); }
   const models = $('#models'); models.replaceChildren();
   for (const [name, status] of Object.entries(state.models)) {
@@ -88,22 +89,23 @@ async function showResults(job) {
   }
   $('#download-all').disabled = $('#delete').disabled = false;
 }
-function setRunning(value) { if (value && !running) pollingStarted = performance.now(); running = value; $('#process').disabled = value || !file; $('#choose').disabled = $('#mode').disabled = $('#strength').disabled = $('#output-format').disabled = value; }
+function setRunning(value) { if (value && !running) pollingStarted = performance.now(); running = value; $('#process').disabled = value || !file; $('#cancel').disabled = !value || !activeJob; $('#choose').disabled = $('#mode').disabled = $('#strength').disabled = $('#output-format').disabled = value; }
 async function pollJob() {
   clearTimeout(pollTimer); if (!activeJob) return;
   try {
-    const job = await json(`/api/jobs/${activeJob}`); message(job.status === 'failed' ? job.error : job.status === 'done' ? 'Loading result audio…' : `${job.stage}…`, job.status === 'failed');
+    const job = await json(`/api/jobs/${activeJob}`); message(job.status === 'failed' ? job.error : job.status === 'done' ? 'Loading result audio…' : job.status === 'cancelled' ? 'Cancelled' : job.status === 'queued' ? `Queued · position ${job.queue_position || 1}` : `${job.stage}…`, job.status === 'failed');
     if (job.status === 'done') { setRunning(true); await showResults(job); setRunning(false); message(`Complete · ${job.elapsed_seconds}s`); await refreshStatus(); }
-    else if (job.status === 'failed') { setRunning(false); $('#delete').disabled = false; await refreshStatus(); }
-    else pollTimer = setTimeout(pollJob, performance.now() - pollingStarted < 10000 ? 250 : 1000);
+    else if (['failed','cancelled'].includes(job.status)) { setRunning(false); $('#delete').disabled = false; await refreshStatus(); }
+    else { $('#cancel').disabled = !!job.cancel_requested; pollTimer = setTimeout(pollJob, performance.now() - pollingStarted < 10000 ? 250 : 1000); }
   } catch (error) { message(`${error.message} Retrying job status…`, true); pollTimer = setTimeout(pollJob, 4000); }
 }
 $('#process').onclick = guarded(async () => {
-  if (!file || running) return; setRunning(true); message('Uploading audio…');
+  if (!file || running) return; activeJob = null; setRunning(true); message('Uploading audio…');
   const data = new FormData(); data.append('file', file); data.append('mode', $('#mode').value); data.append('strength', $('#strength').value); data.append('output_format', $('#output-format').value);
-  try { const job = await json('/api/jobs', {method: 'POST', body: data}); activeJob = job.id; $('#delete').disabled = $('#download-all').disabled = true; clearOutputs(); await pollJob(); }
+  try { const job = await json('/api/jobs', {method: 'POST', body: data}); activeJob = job.id; $('#cancel').disabled = false; $('#delete').disabled = $('#download-all').disabled = true; clearOutputs(); await pollJob(); }
   catch (error) { setRunning(false); throw error; }
 });
+$('#cancel').onclick = guarded(async () => { if (!activeJob) return; $('#cancel').disabled = true; await json(`/api/jobs/${activeJob}/cancel`, {method:'POST'}); await pollJob(); });
 $('#download-all').onclick = guarded(() => download(`/api/jobs/${activeJob}/files/results.zip`, 'sidon-results.zip'));
 $('#delete').onclick = guarded(async () => { if (!activeJob) return; await json(`/api/jobs/${activeJob}`, {method: 'DELETE'}); activeJob = null; clearOutputs(); $('#delete').disabled = $('#download-all').disabled = true; message('Job and server audio deleted.'); });
 $('#save-settings').onclick = guarded(async () => { await json('/api/settings', {method: 'PUT', ...jsonOptions({strength: +$('#strength').value, output_format: $('#output-format').value, chunk_seconds: +$('#chunk-seconds').value, overlap_seconds: +$('#overlap-seconds').value})}); message('Server defaults saved.'); await refreshStatus(); });
