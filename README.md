@@ -2,7 +2,7 @@
 
 <p align="center"><a href="https://hangry-labs.github.io/Sidon/examples/?lang=en"><strong>🎧 Hear the before-and-after comparison</strong></a></p>
 
-Source release **v1.0.1**.
+Development version **v1.0.2-snapshot**.
 
 Latest stable: [**v1.0.0**](https://github.com/hangry-labs/Sidon/releases/tag/v1.0.0).
 See the [version history](#version-history).
@@ -188,6 +188,23 @@ For cold/warm latency measurements and the audio.cpp implementation comparison,
 see [performance notes](docs/performance.md).
 
 ## Version History
+
+<details open markdown="1">
+<summary><strong>v1.0.2-snapshot development notes</strong></summary>
+
+### v1.0.2-snapshot
+
+Development after `v1.0.1`. Rolling `latest` and `latest_tiny` follow
+`main` after successful publication; immutable stable tags remain unchanged.
+
+```bash
+docker run -d --name sidon --restart unless-stopped --gpus all -p 127.0.0.1:7868:7868 -v sidon_data:/app/persistent hangrylabs/sidon:latest
+docker run -d --name sidon --restart unless-stopped --gpus all -p 127.0.0.1:7868:7868 -v sidon_data:/app/persistent hangrylabs/sidon:latest_tiny
+```
+
+- No changes recorded yet.
+
+</details>
 
 <details markdown="1">
 <summary><strong>v1.0.1 release notes</strong></summary>

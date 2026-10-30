@@ -1,6 +1,6 @@
 <p align="center"><img src="https://raw.githubusercontent.com/hangry-labs/Sidon/main/docs/assets/sidon-wordmark.svg" width="560" alt="Sidon · Voice restoration studio"></p>
 
-Source release **v1.0.1**.
+Development version **v1.0.2-snapshot**.
 
 Local voice restoration and two-speaker separation, with a browser studio and audio-job API in one container.
 
