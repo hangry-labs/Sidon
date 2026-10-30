@@ -76,3 +76,5 @@ include it. Confirm notices and corresponding sources remain available, then
 create the GitHub Release and update Docker Hub prose as separate publication steps.
 The [v1.0.0 notes](releases/v1.0.0.md) record the verified first release and its
 immutable deployment references.
+The [v1.0.1 notes](releases/v1.0.1.md) cover the authentication usability patch
+and its verified deployment references.

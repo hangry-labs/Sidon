@@ -221,6 +221,29 @@ The GitHub Release also provides a wheel, source archive and SHA256 checksums
 built directly from the immutable tag. Stable deployment references are recorded
 in the [release notes](releases/v1.0.0.md).
 
+## v1.0.1 authentication patch, 2026-10-30
+
+[v1.0.1](https://github.com/hangry-labs/Sidon/releases/tag/v1.0.1) fixes repeated
+navigation to System after unauthorized background requests and adds masked key
+retention, Show/Hide and Copy controls. Server authentication remains optional
+through `SIDON_API_KEY`; the server's configured secret is never returned to the
+browser. Inference, model weights and runtime dependency pins are unchanged.
+
+An image built directly from the tag passed Chromium checks for missing/wrong-key
+navigation, paused unauthorized polling, successful reconnection, masked copy,
+automatic masking and clearing on reload. Packaged layouts at 1440, 390 and 320
+pixels had no horizontal overflow or JavaScript errors. Both clipboard paths
+were also checked during frontend validation, including plain HTTP fallback.
+The tagged full image passed offline GPU enhancement, separation, split/enhance,
+direct/async APIs and all seven format round trips without a model-cache mount.
+
+The [stable publishing workflow](https://github.com/hangry-labs/Sidon/actions/runs/41076843359)
+passed. Independent anonymous checks confirmed matching full/tiny/source OCI
+indexes in Docker Hub and GHCR, correct version/commit labels and exact source
+identity. The published inventory contains 67 Python and 326 Debian records,
+zero missing-notice flags and 721 verified corresponding-source files. The
+GitHub Release is immutable, with tagged Python artifacts and SHA256 checksums.
+
 ## Remaining qualification limits
 
 Listening acceptance covers the operator's tested material; a broader controlled

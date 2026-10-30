@@ -25,10 +25,10 @@ restoration that helps rough recordings sound their best.”
 
 ## Quick start
 
-**Publication status:** source release `v1.0.1` prepares the versioned full/tiny/source tags. Availability requires successful CI and verified registry indexes.
+**Publication status:** stable `v1.0.1` full/tiny/source images are published and verified in Docker Hub and GHCR. Commands below pin their OCI indexes; rolling `latest` and `latest_tiny` remain available.
 
 ```bash
-docker run -d --name sidon --gpus all -p 127.0.0.1:7868:7868 -v sidon_data:/app/persistent hangrylabs/sidon:v1.0.0@sha256:0125e73d1d09070bbd38323156e89c357a9fc6fa4b7773e85b77651a3f150c8a
+docker run -d --name sidon --gpus all -p 127.0.0.1:7868:7868 -v sidon_data:/app/persistent hangrylabs/sidon:v1.0.1@sha256:18040c7bfbc0228e03445f928419405b548bb4cb6d1d23cba4aa568f0b6b135e
 ```
 
 Open **http://localhost:7868**. Linux x86-64, Python 3.13, PyTorch 2.14 / CUDA 13.0. Full images bake all pinned CPU/CUDA weights and work offline. NVIDIA use needs a CUDA 13-compatible host driver and container support. For CPU, omit `--gpus all` and add `-e SIDON_DEVICE=cpu`.
@@ -36,7 +36,7 @@ Open **http://localhost:7868**. Linux x86-64, Python 3.13, PyTorch 2.14 / CUDA 1
 ## Tiny image
 
 ```bash
-docker run -d --name sidon-tiny --gpus all -p 127.0.0.1:7868:7868 -v sidon_data:/app/persistent hangrylabs/sidon:v1.0.0_tiny@sha256:ed7ba7f147f92041ebdbd7d5abd1f8264771ffd7df7c0263d14a633f573728f1
+docker run -d --name sidon-tiny --gpus all -p 127.0.0.1:7868:7868 -v sidon_data:/app/persistent hangrylabs/sidon:v1.0.1_tiny@sha256:5add9ccd73c9a61b7fbb1c3c655ac927d121658131b93d305cb4ddf997c79cb3
 ```
 
 Same UI/API, no baked weights. First use downloads only needed assets; keep the volume. CPU and CUDA restoration exports differ. After downloading all needed variants, restart with the same volume and `HF_HUB_OFFLINE=1` for cached use.
@@ -50,11 +50,11 @@ report the same stable indexes.
 
 | Image | Top-level OCI index |
 | --- | --- |
-| `v1.0.0` | `sha256:0125e73d1d09070bbd38323156e89c357a9fc6fa4b7773e85b77651a3f150c8a` |
-| `v1.0.0_tiny` | `sha256:ed7ba7f147f92041ebdbd7d5abd1f8264771ffd7df7c0263d14a633f573728f1` |
-| `v1.0.0_sources` | `sha256:d0f482663af91a55dc24928d6ce977dc087678debb6fc6413256ad473b4ded60` |
+| `v1.0.1` | `sha256:18040c7bfbc0228e03445f928419405b548bb4cb6d1d23cba4aa568f0b6b135e` |
+| `v1.0.1_tiny` | `sha256:5add9ccd73c9a61b7fbb1c3c655ac927d121658131b93d305cb4ddf997c79cb3` |
+| `v1.0.1_sources` | `sha256:437d88dc2694dbe6b652c3b23f29d47fa4dfe7aafe86d91e113d6d63e3fd1fe5` |
 
-Corresponding sources: `hangrylabs/sidon:v1.0.0_sources@sha256:d0f482663af91a55dc24928d6ce977dc087678debb6fc6413256ad473b4ded60`. Binary labels also identify their unique
+Corresponding sources: `hangrylabs/sidon:v1.0.1_sources@sha256:437d88dc2694dbe6b652c3b23f29d47fa4dfe7aafe86d91e113d6d63e3fd1fe5`. Binary labels also identify their unique
 matching source build; see [source extraction](https://github.com/hangry-labs/Sidon/blob/main/docs/docker-packaging.md).
 
 ## API

@@ -4,7 +4,7 @@
 
 Development version **v1.0.2-snapshot**.
 
-Latest stable: [**v1.0.0**](https://github.com/hangry-labs/Sidon/releases/tag/v1.0.0).
+Latest stable: [**v1.0.1**](https://github.com/hangry-labs/Sidon/releases/tag/v1.0.1).
 See the [version history](#version-history).
 
 Restore noisy or degraded speech, split a two-speaker mixture, and listen to the results in a local Hangry Labs studio. One Docker container serves the browser UI, audio-job API and models.
@@ -21,7 +21,7 @@ three low-quality VoxCPMTTS outputs with their recordings after Sidon restoratio
 Stable full image, with baked weights and offline inference:
 
 ```bash
-docker run -d --name sidon --restart unless-stopped --gpus all -p 127.0.0.1:7868:7868 -v sidon_data:/app/persistent hangrylabs/sidon:v1.0.0@sha256:0125e73d1d09070bbd38323156e89c357a9fc6fa4b7773e85b77651a3f150c8a
+docker run -d --name sidon --restart unless-stopped --gpus all -p 127.0.0.1:7868:7868 -v sidon_data:/app/persistent hangrylabs/sidon:v1.0.1@sha256:18040c7bfbc0228e03445f928419405b548bb4cb6d1d23cba4aa568f0b6b135e
 ```
 
 Open **http://localhost:7868**. Requires a CUDA 13-compatible NVIDIA driver and container support.
@@ -67,7 +67,7 @@ Restoration resynthesizes speech. It can change timbre or add artifacts and does
 ## Smaller image and cache
 
 ```bash
-docker run -d --name sidon --restart unless-stopped --gpus all -p 127.0.0.1:7868:7868 -v sidon_data:/app/persistent hangrylabs/sidon:v1.0.0_tiny@sha256:ed7ba7f147f92041ebdbd7d5abd1f8264771ffd7df7c0263d14a633f573728f1
+docker run -d --name sidon --restart unless-stopped --gpus all -p 127.0.0.1:7868:7868 -v sidon_data:/app/persistent hangrylabs/sidon:v1.0.1_tiny@sha256:5add9ccd73c9a61b7fbb1c3c655ac927d121658131b93d305cb4ddf997c79cb3
 ```
 
 For a source build, use `docker build --target tiny -t sidon:tiny .`.
@@ -206,29 +206,37 @@ docker run -d --name sidon --restart unless-stopped --gpus all -p 127.0.0.1:7868
 
 </details>
 
-<details markdown="1">
-<summary><strong>v1.0.1 release notes</strong></summary>
-
 ### v1.0.1
 
-Source release `v1.0.1`, Python package `1.0.1`. The source tag triggers
-container publication. Verify full/tiny/source registry indexes before announcing
-availability, then record the top-level OCI digests here. No digest is assumed.
+Authentication and API-key usability fixes. Published and verified in both
+official registries.
 
-**Full image (after successful publication)**
-
-```bash
-docker run -d --name sidon --restart unless-stopped --gpus all -p 127.0.0.1:7868:7868 -v sidon_data:/app/persistent hangrylabs/sidon:v1.0.1
-```
-
-**Tiny image (after successful publication)**
+**Full image**
 
 ```bash
-docker run -d --name sidon --restart unless-stopped --gpus all -p 127.0.0.1:7868:7868 -v sidon_data:/app/persistent hangrylabs/sidon:v1.0.1_tiny
+docker run -d --name sidon --restart unless-stopped --gpus all -p 127.0.0.1:7868:7868 -v sidon_data:/app/persistent hangrylabs/sidon:v1.0.1@sha256:18040c7bfbc0228e03445f928419405b548bb4cb6d1d23cba4aa568f0b6b135e
 ```
 
-Matching sources: `v1.0.1_sources`. For GHCR, replace `hangrylabs/sidon`
-with `ghcr.io/hangry-labs/sidon`. Keep the same persistent volume on upgrades.
+**Tiny image**
+
+```bash
+docker run -d --name sidon --restart unless-stopped --gpus all -p 127.0.0.1:7868:7868 -v sidon_data:/app/persistent hangrylabs/sidon:v1.0.1_tiny@sha256:5add9ccd73c9a61b7fbb1c3c655ac927d121658131b93d305cb4ddf997c79cb3
+```
+
+Keep the persistent volume when replacing a container. For GHCR, replace
+`hangrylabs/sidon` with `ghcr.io/hangry-labs/sidon`; both registries expose
+the same verified top-level OCI indexes.
+
+| Image | Top-level OCI index |
+| --- | --- |
+| `v1.0.1` | `sha256:18040c7bfbc0228e03445f928419405b548bb4cb6d1d23cba4aa568f0b6b135e` |
+| `v1.0.1_tiny` | `sha256:5add9ccd73c9a61b7fbb1c3c655ac927d121658131b93d305cb4ddf997c79cb3` |
+| `v1.0.1_sources` | `sha256:437d88dc2694dbe6b652c3b23f29d47fa4dfe7aafe86d91e113d6d63e3fd1fe5` |
+
+Corresponding sources: `hangrylabs/sidon:v1.0.1_sources@sha256:437d88dc2694dbe6b652c3b23f29d47fa4dfe7aafe86d91e113d6d63e3fd1fe5`.
+
+<details markdown="1">
+<summary><strong>v1.0.1 release notes</strong></summary>
 
 - Keep studio tabs accessible when API authentication is required; pause failed
   background polling until the user reconnects through System.
