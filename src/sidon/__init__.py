@@ -2,4 +2,4 @@
 # Copyright (c) 2026 Hangry Labs contributors.
 """Local audio inference tools maintained by Hangry Labs."""
 
-__version__ = "1.0.1-snapshot"
+__version__ = "1.0.1"

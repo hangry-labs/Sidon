@@ -1,6 +1,6 @@
 [project]
 name = "sidon"
-version = "1.0.1.dev0"
+version = "1.0.1"
 description = "Hangry Labs Sidon: local voice restoration and speaker separation"
 readme = "README.md"
 authors = [

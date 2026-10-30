@@ -2,7 +2,7 @@
 
 <p align="center"><a href="https://hangry-labs.github.io/Sidon/examples/?lang=en"><strong>🎧 Hear the before-and-after comparison</strong></a></p>
 
-Development version **v1.0.1-snapshot**.
+Source release **v1.0.1**.
 
 Latest stable: [**v1.0.0**](https://github.com/hangry-labs/Sidon/releases/tag/v1.0.0).
 See the [version history](#version-history).
@@ -189,18 +189,29 @@ see [performance notes](docs/performance.md).
 
 ## Version History
 
-<details open markdown="1">
-<summary><strong>v1.0.1-snapshot development notes</strong></summary>
+<details markdown="1">
+<summary><strong>v1.0.1 release notes</strong></summary>
 
-### v1.0.1-snapshot
+### v1.0.1
 
-Development after `v1.0.0`. Rolling `latest` and `latest_tiny` follow
-`main` after successful publication; immutable stable tags remain unchanged.
+Source release `v1.0.1`, Python package `1.0.1`. The source tag triggers
+container publication. Verify full/tiny/source registry indexes before announcing
+availability, then record the top-level OCI digests here. No digest is assumed.
+
+**Full image (after successful publication)**
 
 ```bash
-docker run -d --name sidon --restart unless-stopped --gpus all -p 127.0.0.1:7868:7868 -v sidon_data:/app/persistent hangrylabs/sidon:latest
-docker run -d --name sidon --restart unless-stopped --gpus all -p 127.0.0.1:7868:7868 -v sidon_data:/app/persistent hangrylabs/sidon:latest_tiny
+docker run -d --name sidon --restart unless-stopped --gpus all -p 127.0.0.1:7868:7868 -v sidon_data:/app/persistent hangrylabs/sidon:v1.0.1
 ```
+
+**Tiny image (after successful publication)**
+
+```bash
+docker run -d --name sidon --restart unless-stopped --gpus all -p 127.0.0.1:7868:7868 -v sidon_data:/app/persistent hangrylabs/sidon:v1.0.1_tiny
+```
+
+Matching sources: `v1.0.1_sources`. For GHCR, replace `hangrylabs/sidon`
+with `ghcr.io/hangry-labs/sidon`. Keep the same persistent volume on upgrades.
 
 - Keep studio tabs accessible when API authentication is required; pause failed
   background polling until the user reconnects through System.

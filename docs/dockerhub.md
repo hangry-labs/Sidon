@@ -1,6 +1,6 @@
 <p align="center"><img src="https://raw.githubusercontent.com/hangry-labs/Sidon/main/docs/assets/sidon-wordmark.svg" width="560" alt="Sidon · Voice restoration studio"></p>
 
-Development version **v1.0.1-snapshot**.
+Source release **v1.0.1**.
 
 Local voice restoration and two-speaker separation, with a browser studio and audio-job API in one container.
 
@@ -25,7 +25,7 @@ restoration that helps rough recordings sound their best.”
 
 ## Quick start
 
-**Publication status:** stable `v1.0.0` full/tiny/source images are published and verified in Docker Hub and GHCR. Stable commands below pin the matching OCI indexes; rolling `latest` and `latest_tiny` remain available.
+**Publication status:** source release `v1.0.1` prepares the versioned full/tiny/source tags. Availability requires successful CI and verified registry indexes.
 
 ```bash
 docker run -d --name sidon --gpus all -p 127.0.0.1:7868:7868 -v sidon_data:/app/persistent hangrylabs/sidon:v1.0.0@sha256:0125e73d1d09070bbd38323156e89c357a9fc6fa4b7773e85b77651a3f150c8a
