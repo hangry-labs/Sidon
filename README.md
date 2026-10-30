@@ -3,6 +3,8 @@
 <p align="center"><a href="https://hangry-labs.github.io/Sidon/examples/?lang=en"><strong>🎧 Hear the before-and-after comparison</strong></a></p>
 
 Development version **v1.0.1-snapshot**.
+
+Latest stable: [**v1.0.0**](https://github.com/hangry-labs/Sidon/releases/tag/v1.0.0).
 See the [version history](#version-history).
 
 Restore noisy or degraded speech, split a two-speaker mixture, and listen to the results in a local Hangry Labs studio. One Docker container serves the browser UI, audio-job API and models.
@@ -13,6 +15,16 @@ The [project website](https://hangry-labs.github.io/Sidon/) presents this README
 and the documentation in the shared Hangry Labs theme. Its
 [listening examples](https://hangry-labs.github.io/Sidon/examples/?lang=en) compare
 three low-quality VoxCPMTTS outputs with their recordings after Sidon restoration.
+
+## Quick start
+
+Stable full image, with baked weights and offline inference:
+
+```bash
+docker run -d --name sidon --restart unless-stopped --gpus all -p 127.0.0.1:7868:7868 -v sidon_data:/app/persistent hangrylabs/sidon:v1.0.0@sha256:0125e73d1d09070bbd38323156e89c357a9fc6fa4b7773e85b77651a3f150c8a
+```
+
+Open **http://localhost:7868**. Requires a CUDA 13-compatible NVIDIA driver and container support.
 
 ## Run locally
 
@@ -55,9 +67,10 @@ Restoration resynthesizes speech. It can change timbre or add artifacts and does
 ## Smaller image and cache
 
 ```bash
-docker build --target tiny -t sidon:tiny .
-docker run -d --name sidon-tiny --gpus all -p 127.0.0.1:7868:7868 -v sidon_data:/app/persistent sidon:tiny
+docker run -d --name sidon --restart unless-stopped --gpus all -p 127.0.0.1:7868:7868 -v sidon_data:/app/persistent hangrylabs/sidon:v1.0.0_tiny@sha256:ed7ba7f147f92041ebdbd7d5abd1f8264771ffd7df7c0263d14a633f573728f1
 ```
+
+For a source build, use `docker build --target tiny -t sidon:tiny .`.
 
 The tiny image has the same UI and runtime but downloads a model's pinned weights on first use. Keep `/app/persistent` to reuse the cache. Download every model/device variant you need before disconnecting: CPU and CUDA restoration exports are different files. Restart with the same volume and `-e HF_HUB_OFFLINE=1` for cached operation.
 
@@ -193,29 +206,38 @@ docker run -d --name sidon --restart unless-stopped --gpus all -p 127.0.0.1:7868
 
 </details>
 
-<details markdown="1">
-<summary><strong>v1.0.0 release notes</strong></summary>
-
 ### v1.0.0
 
-Source release `v1.0.0`, Python package `1.0.0`. The source tag triggers
-container publication. Verify full/tiny/source registry indexes before announcing
-availability, then record the top-level OCI digests here. No digest is assumed.
+Published and verified in Docker Hub and GHCR. Source release `v1.0.0`,
+Python package `1.0.0`.
 
-**Full image (after successful publication)**
-
-```bash
-docker run -d --name sidon --restart unless-stopped --gpus all -p 127.0.0.1:7868:7868 -v sidon_data:/app/persistent hangrylabs/sidon:v1.0.0
-```
-
-**Tiny image (after successful publication)**
+**Full image**
 
 ```bash
-docker run -d --name sidon --restart unless-stopped --gpus all -p 127.0.0.1:7868:7868 -v sidon_data:/app/persistent hangrylabs/sidon:v1.0.0_tiny
+docker run -d --name sidon --restart unless-stopped --gpus all -p 127.0.0.1:7868:7868 -v sidon_data:/app/persistent hangrylabs/sidon:v1.0.0@sha256:0125e73d1d09070bbd38323156e89c357a9fc6fa4b7773e85b77651a3f150c8a
 ```
 
-Matching sources: `v1.0.0_sources`. For GHCR, replace `hangrylabs/sidon`
-with `ghcr.io/hangry-labs/sidon`. Keep the same persistent volume on upgrades.
+**Tiny image**
+
+```bash
+docker run -d --name sidon --restart unless-stopped --gpus all -p 127.0.0.1:7868:7868 -v sidon_data:/app/persistent hangrylabs/sidon:v1.0.0_tiny@sha256:ed7ba7f147f92041ebdbd7d5abd1f8264771ffd7df7c0263d14a633f573728f1
+```
+
+Choose one variant and keep the same persistent volume when replacing it.
+For GHCR, replace `hangrylabs/sidon` with `ghcr.io/hangry-labs/sidon`; the
+verified top-level OCI index digests are identical in both registries.
+
+| Image | Top-level OCI index |
+| --- | --- |
+| `v1.0.0` | `sha256:0125e73d1d09070bbd38323156e89c357a9fc6fa4b7773e85b77651a3f150c8a` |
+| `v1.0.0_tiny` | `sha256:ed7ba7f147f92041ebdbd7d5abd1f8264771ffd7df7c0263d14a633f573728f1` |
+| `v1.0.0_sources` | `sha256:d0f482663af91a55dc24928d6ce977dc087678debb6fc6413256ad473b4ded60` |
+
+Corresponding sources: `hangrylabs/sidon:v1.0.0_sources@sha256:d0f482663af91a55dc24928d6ce977dc087678debb6fc6413256ad473b4ded60`. Binary labels also identify their unique
+matching source build; see [source extraction](docs/docker-packaging.md).
+
+<details markdown="1">
+<summary><strong>v1.0.0 release notes</strong></summary>
 
 - Focus the fork on inference: remove training and dataset-preparation code and
   replace the noncommercial DialogueSidon dependency with MossFormer2 separation.

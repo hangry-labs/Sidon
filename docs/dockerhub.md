@@ -25,10 +25,10 @@ restoration that helps rough recordings sound their best.”
 
 ## Quick start
 
-**Publication status:** source release `v1.0.0` prepares the versioned full/tiny/source tags. Availability requires successful CI and verified registry indexes.
+**Publication status:** stable `v1.0.0` full/tiny/source images are published and verified in Docker Hub and GHCR. Stable commands below pin the matching OCI indexes; rolling `latest` and `latest_tiny` remain available.
 
 ```bash
-docker run -d --name sidon --gpus all -p 127.0.0.1:7868:7868 -v sidon_data:/app/persistent hangrylabs/sidon:latest
+docker run -d --name sidon --gpus all -p 127.0.0.1:7868:7868 -v sidon_data:/app/persistent hangrylabs/sidon:v1.0.0@sha256:0125e73d1d09070bbd38323156e89c357a9fc6fa4b7773e85b77651a3f150c8a
 ```
 
 Open **http://localhost:7868**. Linux x86-64, Python 3.13, PyTorch 2.14 / CUDA 13.0. Full images bake all pinned CPU/CUDA weights and work offline. NVIDIA use needs a CUDA 13-compatible host driver and container support. For CPU, omit `--gpus all` and add `-e SIDON_DEVICE=cpu`.
@@ -36,7 +36,7 @@ Open **http://localhost:7868**. Linux x86-64, Python 3.13, PyTorch 2.14 / CUDA 1
 ## Tiny image
 
 ```bash
-docker run -d --name sidon-tiny --gpus all -p 127.0.0.1:7868:7868 -v sidon_data:/app/persistent hangrylabs/sidon:latest_tiny
+docker run -d --name sidon-tiny --gpus all -p 127.0.0.1:7868:7868 -v sidon_data:/app/persistent hangrylabs/sidon:v1.0.0_tiny@sha256:ed7ba7f147f92041ebdbd7d5abd1f8264771ffd7df7c0263d14a633f573728f1
 ```
 
 Same UI/API, no baked weights. First use downloads only needed assets; keep the volume. CPU and CUDA restoration exports differ. After downloading all needed variants, restart with the same volume and `HF_HUB_OFFLINE=1` for cached use.
@@ -44,6 +44,18 @@ Same UI/API, no baked weights. First use downloads only needed assets; keep the 
 ## Tags and sources
 
 Main builds publish `latest`, `latest_tiny`, `latest_sources`. Stable Git tags publish `vX.Y` or `vX.Y.Z` and matching `_tiny` / `_sources` variants. Stable tags are immutable. Published application images identify their exact corresponding-source image in the `app.hangrylabs.sources` label; source images contain `/sources` and need no executable runtime.
+
+For GHCR, replace `hangrylabs/sidon` with `ghcr.io/hangry-labs/sidon`; both mirrors
+report the same stable indexes.
+
+| Image | Top-level OCI index |
+| --- | --- |
+| `v1.0.0` | `sha256:0125e73d1d09070bbd38323156e89c357a9fc6fa4b7773e85b77651a3f150c8a` |
+| `v1.0.0_tiny` | `sha256:ed7ba7f147f92041ebdbd7d5abd1f8264771ffd7df7c0263d14a633f573728f1` |
+| `v1.0.0_sources` | `sha256:d0f482663af91a55dc24928d6ce977dc087678debb6fc6413256ad473b4ded60` |
+
+Corresponding sources: `hangrylabs/sidon:v1.0.0_sources@sha256:d0f482663af91a55dc24928d6ce977dc087678debb6fc6413256ad473b4ded60`. Binary labels also identify their unique
+matching source build; see [source extraction](https://github.com/hangry-labs/Sidon/blob/main/docs/docker-packaging.md).
 
 ## API
 

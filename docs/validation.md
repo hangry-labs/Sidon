@@ -203,6 +203,24 @@ qualified in isolated source copies. No stable tag, release commit or publicatio
 was performed by this review. Publishing CI must qualify the eventual tagged
 checkout and supply its immutable full/tiny/source digests. See [releasing](releasing.md).
 
+## Stable release publication, 2026-10-30
+
+[Sidon v1.0.0](https://github.com/hangry-labs/Sidon/releases/tag/v1.0.0) is published
+as an immutable GitHub Release. Its annotated tag identifies source commit
+`c62528ae8e2722768e26303432a438de56b698fa`; development continues at
+`1.0.1-snapshot`. The [stable publishing workflow](https://github.com/hangry-labs/Sidon/actions/runs/41065109270)
+passed its source/package checks, packaged runtime tests, corresponding-source
+collection, binary publication and registry verification.
+
+Independent anonymous registry requests confirmed identical full, tiny and source
+OCI indexes in Docker Hub and GHCR. Binary configuration labels identify the
+stable version, exact source commit and unique matching source image. The
+published evidence contains 67 Python and 326 Debian records, no missing-notice
+flags, and 721 verified source files with a matching runtime inventory hash.
+The GitHub Release also provides a wheel, source archive and SHA256 checksums
+built directly from the immutable tag. Stable deployment references are recorded
+in the [release notes](releases/v1.0.0.md).
+
 ## Remaining qualification limits
 
 Listening acceptance covers the operator's tested material; a broader controlled

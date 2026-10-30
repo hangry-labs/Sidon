@@ -1,7 +1,7 @@
 # Releasing Sidon
 
 Sidon follows the same snapshot promotion process as Hangry Labs
-faster-qwen3-tts-studio. The first stable target is `v1.0.0`; release versions use
+faster-qwen3-tts-studio. The first stable release is `v1.0.0`; release versions use
 three components. Runtime qualification happens before promotion; the release
 task runs lightweight source and policy checks, and publishing CI builds and
 tests the packaged runtime.
@@ -74,5 +74,5 @@ references to README and Docker Hub documentation while leaving rolling tags
 unpinned. This is a later documentation commit; never move the stable tag to
 include it. Confirm notices and corresponding sources remain available, then
 create the GitHub Release and update Docker Hub prose as separate publication steps.
-Prepared first-release prose is in [v1.0.0 notes](releases/v1.0.0.md); replace its
-preparation notice only after stable publication has been verified.
+The [v1.0.0 notes](releases/v1.0.0.md) record the verified first release and its
+immutable deployment references.
