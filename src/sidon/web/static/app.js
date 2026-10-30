@@ -3,12 +3,21 @@ import {Player} from './player.js';
 const $ = s => document.querySelector(s);
 let apiKey = '', view = 'enhance', file = null, activeJob = null, running = false, gpuBusy = false, lastStatus = null;
 let outputPlayers = [], pollTimer, gpuTimer, pollingStarted = 0, pollGeneration = 0;
+let authenticationRequired = false;
+const authenticationError = () => Object.assign(new Error('An API key is required by this server. Enter it in System and click Connect.'), {status: 401});
 const message = (text, error = false) => { for (const selector of ['#job-status', '#system-status']) { $(selector).textContent = text; $(selector).dataset.tone = error ? 'error' : ''; } };
 async function request(url, options = {}) {
+  if (authenticationRequired) throw authenticationError();
   const response = await fetch(url, {...options, headers: {...options.headers, ...(apiKey ? {Authorization: `Bearer ${apiKey}`} : {})}});
   if (!response.ok) {
     let detail; try { detail = (await response.json()).detail; } catch {}
-    if (response.status === 401) { changeView('system'); $('#api-key').focus(); }
+    if (response.status === 401) {
+      authenticationRequired = true; clearTimeout(gpuTimer);
+      $('#runtime-state').textContent = 'Authentication required';
+      $('#runtime-detail').textContent = 'Enter the server API key in System';
+      $('#runtime-badge').dataset.state = 'error';
+      throw authenticationError();
+    }
     throw Object.assign(new Error(typeof detail === 'string' ? detail : `Request failed (${response.status}). Check the file and settings.`), {status: response.status});
   }
   return response;
@@ -111,6 +120,7 @@ async function pollJob() {
     else { $('#cancel').disabled = !!job.cancel_requested; pollTimer = setTimeout(pollJob, performance.now() - pollingStarted < 10000 ? 250 : 1000); }
   } catch (error) {
     if (!isCurrent()) return;
+    if (error.status === 401) { setRunning(false); message(error.message, true); return; }
     if (error.status === 404) { beginJob(); setRunning(false); message('This job was deleted or expired. Submit the audio again.', true); return; }
     message(`${error.message} Retrying job status…`, true); pollTimer = setTimeout(pollJob, 4000);
   }
@@ -125,7 +135,7 @@ $('#cancel').onclick = guarded(async () => { if (!activeJob) return; $('#cancel'
 $('#download-all').onclick = guarded(() => download(`/api/jobs/${activeJob}/files/results.zip`, 'sidon-results.zip'));
 $('#delete').onclick = guarded(async () => { const jobId = activeJob; if (!jobId) return; await json(`/api/jobs/${jobId}`, {method: 'DELETE'}); if (activeJob !== jobId) return; beginJob(); message('Job and server audio deleted.'); });
 $('#save-settings').onclick = guarded(async () => { await json('/api/settings', {method: 'PUT', ...jsonOptions({strength: +$('#strength').value, output_format: $('#output-format').value, chunk_seconds: +$('#chunk-seconds').value, overlap_seconds: +$('#overlap-seconds').value})}); message('Server defaults saved.'); await refreshStatus(); });
-$('#connect').onclick = guarded(async () => { apiKey = $('#api-key').value; $('#api-key').value = ''; await refreshStatus(true); message('Connected.'); scheduleGpu(); });
+$('#connect').onclick = guarded(async () => { apiKey = $('#api-key').value; $('#api-key').value = ''; authenticationRequired = false; await refreshStatus(true); message('Connected.'); scheduleGpu(); if (activeJob) await pollJob(); });
 async function refreshHistory() {
   const jobs = await json('/api/jobs'); $('#history').replaceChildren();
   for (const job of jobs.slice(0, 25)) {
@@ -167,13 +177,13 @@ function drawGpu(data) {
   }
 }
 async function updateGpu() {
-  if (gpuBusy || view !== 'system' || document.hidden) return; gpuBusy = true;
+  if (authenticationRequired || gpuBusy || view !== 'system' || document.hidden) return; gpuBusy = true;
   try { drawGpu(await json('/api/gpu')); } catch { /* Retain the last valid telemetry during temporary failures. */ }
-  finally { gpuBusy = false; if (view === 'system' && !document.hidden) gpuTimer = setTimeout(updateGpu, 1000); }
+  finally { gpuBusy = false; if (!authenticationRequired && view === 'system' && !document.hidden) gpuTimer = setTimeout(updateGpu, 1000); }
 }
 function scheduleGpu() { clearTimeout(gpuTimer); if (view === 'system' && !document.hidden) updateGpu(); }
 $('#gpu-window').value = sessionStorage.getItem('sidon-gpu-window') || '60'; $('#gpu-window').onchange = () => { sessionStorage.setItem('sidon-gpu-window', $('#gpu-window').value); scheduleGpu(); };
 document.addEventListener('visibilitychange', scheduleGpu); window.addEventListener('pagehide', () => { clearTimeout(gpuTimer); clearTimeout(pollTimer); });
 changeView(location.hash.slice(1) || sessionStorage.getItem('sidon-tab') || 'enhance');
-refreshStatus(true).catch(error => { $('#runtime-state').textContent = 'Connection needed'; message(error.message, true); });
-setInterval(() => { if (!document.hidden) refreshStatus().catch(() => {}); }, 5000);
+refreshStatus(true).catch(error => { if (error.status !== 401) $('#runtime-state').textContent = 'Connection needed'; message(error.message, true); });
+setInterval(() => { if (!authenticationRequired && !document.hidden) refreshStatus().catch(() => {}); }, 5000);

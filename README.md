@@ -202,7 +202,8 @@ docker run -d --name sidon --restart unless-stopped --gpus all -p 127.0.0.1:7868
 docker run -d --name sidon --restart unless-stopped --gpus all -p 127.0.0.1:7868:7868 -v sidon_data:/app/persistent hangrylabs/sidon:latest_tiny
 ```
 
-- No changes recorded yet.
+- Keep studio tabs accessible when API authentication is required; pause failed
+  background polling until the user reconnects through System.
 
 </details>
 
