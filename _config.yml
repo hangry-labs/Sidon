@@ -62,7 +62,6 @@ exclude:
   - scripts
   - tests
   - src
-  - infer.py
   - Dockerfile
   - compose.yaml
   - Taskfile.yml
