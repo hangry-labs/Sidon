@@ -146,6 +146,11 @@ html[data-header-collapsed="true"] .brand-hero .runtime-copy span { display: blo
 .section-title i { color: var(--accent); font-size: 1rem; }
 
 .field, .compact-field { display: grid; gap: 5px; margin-top: 12px; }
+.field > label { color: var(--muted); font-size: 0.75rem; font-weight: 700; }
+.api-key-controls { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.api-key-controls input { flex: 1; min-width: 0; }
+.api-key-controls .icon-button { flex: 0 0 36px; height: 36px; }
+.api-key-controls svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .field > span, .compact-field > span, .timestamp-options > span { color: var(--muted); font-size: 0.75rem; font-weight: 700; }
 .model-display { display: flex; align-items: center; gap: 9px; min-height: 40px; color: #d8d9dd; font-size: 0.78rem; overflow-wrap: anywhere; }
 .model-display i { flex: 0 0 auto; color: var(--accent); font-size: 0.95rem; }

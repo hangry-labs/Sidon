@@ -56,6 +56,7 @@ $('#mode').onchange = () => { changeView(['enhance','convert'].includes($('#mode
 $('#output-format').onchange = modeChanged;
 $('#strength').oninput = () => { $('#strength-value').textContent = `${Math.round(+$('#strength').value * 100)}%`; };
 function changeView(next, setMode = true) {
+  if (next !== 'system') setApiKeyVisible(false);
   if (!['enhance','separate','convert','api','system'].includes(next)) next = 'enhance'; view = next;
   sessionStorage.setItem('sidon-tab', view); history.replaceState(null, '', `#${view}`);
   $('#view-process').hidden = !['enhance','separate','convert'].includes(view); $('#view-api').hidden = view !== 'api'; $('#view-system').hidden = view !== 'system';
@@ -135,7 +136,36 @@ $('#cancel').onclick = guarded(async () => { if (!activeJob) return; $('#cancel'
 $('#download-all').onclick = guarded(() => download(`/api/jobs/${activeJob}/files/results.zip`, 'sidon-results.zip'));
 $('#delete').onclick = guarded(async () => { const jobId = activeJob; if (!jobId) return; await json(`/api/jobs/${jobId}`, {method: 'DELETE'}); if (activeJob !== jobId) return; beginJob(); message('Job and server audio deleted.'); });
 $('#save-settings').onclick = guarded(async () => { await json('/api/settings', {method: 'PUT', ...jsonOptions({strength: +$('#strength').value, output_format: $('#output-format').value, chunk_seconds: +$('#chunk-seconds').value, overlap_seconds: +$('#overlap-seconds').value})}); message('Server defaults saved.'); await refreshStatus(); });
-$('#connect').onclick = guarded(async () => { apiKey = $('#api-key').value; $('#api-key').value = ''; authenticationRequired = false; await refreshStatus(true); message('Connected.'); scheduleGpu(); if (activeJob) await pollJob(); });
+function setApiKeyVisible(visible) {
+  $('#api-key').type = visible ? 'text' : 'password';
+  const label = visible ? 'Hide API key' : 'Show API key';
+  $('#reveal-api-key').setAttribute('aria-label', label); $('#reveal-api-key').title = label;
+  $('#reveal-api-key').setAttribute('aria-pressed', String(visible));
+  $('#reveal-api-key .eye-slash').toggleAttribute('hidden', !visible);
+}
+function syncApiKeyControls() {
+  const empty = !$('#api-key').value;
+  $('#reveal-api-key').disabled = $('#copy-api-key').disabled = empty;
+  if (empty) setApiKeyVisible(false);
+}
+$('#api-key').oninput = syncApiKeyControls;
+$('#reveal-api-key').onclick = () => setApiKeyVisible($('#api-key').type === 'password');
+$('#copy-api-key').onclick = guarded(async () => {
+  const value = $('#api-key').value; if (!value) return;
+  let copied = false;
+  try { if (navigator.clipboard?.writeText) { await navigator.clipboard.writeText(value); copied = true; } } catch { /* Try the local HTTP-compatible copy path. */ }
+  if (!copied) {
+    const focused = document.activeElement, temporary = document.createElement('textarea');
+    temporary.value = value; temporary.readOnly = true; temporary.setAttribute('aria-hidden', 'true');
+    temporary.style.cssText = 'position:fixed;left:-10000px;top:0'; document.body.append(temporary);
+    try { temporary.select(); copied = document.execCommand('copy'); }
+    finally { temporary.remove(); focused?.focus({preventScroll: true}); }
+  }
+  if (!copied) throw new Error('Clipboard access is unavailable. Show the API key and copy it manually.');
+  message('API key copied.');
+});
+syncApiKeyControls();
+$('#connect').onclick = guarded(async () => { apiKey = $('#api-key').value; setApiKeyVisible(false); authenticationRequired = false; await refreshStatus(true); message('Connected.'); scheduleGpu(); if (activeJob) await pollJob(); });
 async function refreshHistory() {
   const jobs = await json('/api/jobs'); $('#history').replaceChildren();
   for (const job of jobs.slice(0, 25)) {
@@ -184,6 +214,7 @@ async function updateGpu() {
 function scheduleGpu() { clearTimeout(gpuTimer); if (view === 'system' && !document.hidden) updateGpu(); }
 $('#gpu-window').value = sessionStorage.getItem('sidon-gpu-window') || '60'; $('#gpu-window').onchange = () => { sessionStorage.setItem('sidon-gpu-window', $('#gpu-window').value); scheduleGpu(); };
 document.addEventListener('visibilitychange', scheduleGpu); window.addEventListener('pagehide', () => { clearTimeout(gpuTimer); clearTimeout(pollTimer); });
+document.addEventListener('visibilitychange', () => { if (document.hidden) setApiKeyVisible(false); });
 changeView(location.hash.slice(1) || sessionStorage.getItem('sidon-tab') || 'enhance');
 refreshStatus(true).catch(error => { if (error.status !== 401) $('#runtime-state').textContent = 'Connection needed'; message(error.message, true); });
 setInterval(() => { if (!authenticationRequired && !document.hidden) refreshStatus().catch(() => {}); }, 5000);

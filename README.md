@@ -204,6 +204,8 @@ docker run -d --name sidon --restart unless-stopped --gpus all -p 127.0.0.1:7868
 
 - Keep studio tabs accessible when API authentication is required; pause failed
   background polling until the user reconnects through System.
+- Retain the entered API key masked in System, with Show/Hide and Copy controls
+  that work without revealing the key or persisting it across page reloads.
 
 </details>
 
