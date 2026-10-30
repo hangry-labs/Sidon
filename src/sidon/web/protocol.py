@@ -1,43 +1,21 @@
 # SPDX-License-Identifier: Apache-2.0
 """Public API conventions; audio transforms remain native Sidon extensions."""
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel
 from typing import Literal
+from .models import StoredJob, StoredOutput
 
 
-class AudioOutput(BaseModel):
-    model_config = ConfigDict(extra='allow')
-    name: str
-    file: str
+class AudioOutput(StoredOutput):
     url: str
-    sample_rate: int
-    duration: float
-    channels: int = 1
-    format: str | None = None
-    lossy: bool | None = None
-    samples_over_full_scale: int = 0
 
 
-class AudioJob(BaseModel):
-    model_config = ConfigDict(extra='allow')
-    id: str
+class AudioJob(StoredJob):
     object: Literal['audio.job'] = 'audio.job'
-    status: Literal['uploading','queued','running','done','failed','cancelled']
-    mode: Literal['enhance','separate','separate_enhance','convert']
-    created: float
-    stage: str
-    filename: str
-    settings: dict
     outputs: list[AudioOutput]
     url: str
     result_url: str | None = None
     queue_position: int | None = None
-    cancel_requested: bool = False
-    request_id: str | None = None
-    error: str | None = None
-    queue_wait_seconds: float | None = None
-    processing_seconds: float | None = None
-    total_seconds: float | None = None
 
 
 class JobList(BaseModel):

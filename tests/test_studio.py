@@ -90,10 +90,12 @@ def test_invalid_inputs_limits_and_persistence(tmp_path, monkeypatch):
 
 
 def test_expiry_and_restart_recovery(tmp_path):
-    from sidon.web.app import Runtime, write_json
+    from sidon.web.models import Settings
+    from sidon.web.runtime import Runtime, write_json
     import uuid
     job_id = str(uuid.uuid4()); directory = tmp_path / "jobs" / job_id; directory.mkdir(parents=True)
-    write_json(directory / "job.json", {"id": job_id, "status": "running", "created": time.time(), "outputs": []})
+    write_json(directory / "job.json", {"id": job_id, "status": "running", "created": time.time(), "outputs": [],
+               "mode": "enhance", "stage": "Enhancing audio", "filename": "voice.wav", "settings": Settings().model_dump()})
     runtime = Runtime(tmp_path)
     assert runtime.jobs[job_id]["status"] == "failed"
     runtime.jobs[job_id]["created"] = time.time() - runtime.retention - 1

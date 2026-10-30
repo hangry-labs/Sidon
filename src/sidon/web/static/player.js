@@ -32,6 +32,8 @@ export class Player {
   async load(blob, name = '') {
     this.audio.pause(); if (this.url) URL.revokeObjectURL(this.url);
     this.url = URL.createObjectURL(blob); this.audio.src = this.url; this.samples = null;
+    this.audio.playbackRate = 1; this.$('.speed-button').textContent = '1×';
+    this.$('.current').textContent = this.$('.duration').textContent = '0:00'; this.$('.seek').value = 0;
     this.$('.audio-label small').textContent = name; this.$('.wave-empty').hidden = true;
     for (const control of this.root.querySelectorAll('button,input')) control.disabled = false;
     this.draw();
@@ -56,5 +58,5 @@ export class Player {
     const played = this.audio.currentTime / (this.audio.duration || 1);
     for (let x = 0; x < rect.width; x += 3) { const i = Math.min(this.samples.length - 1, Math.floor(x / rect.width * this.samples.length)); const height = Math.max(1, Math.min(1, this.samples[i]) * (mid - 3)); ctx.fillStyle = x / rect.width < played ? '#ff7a1a' : '#b6b8c1'; ctx.fillRect(x, mid - height, 2, height * 2); }
   }
-  dispose() { this.audio.pause(); this.audio.src = ''; this.observer.disconnect(); if (this.url) URL.revokeObjectURL(this.url); players.delete(this); this.root.remove(); }
+  dispose() { this.audio.pause(); this.audio.removeAttribute('src'); this.audio.load(); this.observer.disconnect(); if (this.url) URL.revokeObjectURL(this.url); this.url = null; players.delete(this); this.root.remove(); }
 }

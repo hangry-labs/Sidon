@@ -31,11 +31,11 @@ loading, concurrent GPU use and compiler warm-up affect elapsed time.
 
 ## Tests and interface
 
-- 116 tests passed on the Windows Python 3.13 environment, with five skips
+- 120 tests passed on the Windows Python 3.13 environment, with five skips
   (four CUDA/Triton cases and one unavailable symlink case).
 - All 13 native-backend tests passed separately in the Linux GPU container,
   including four bit-exact fused-kernel cases and initialization fallback checks.
-- The packaged Linux CPU runtime passed 114 tests, with seven skips (four GPU kernel
+- The packaged Linux CPU runtime passed 118 tests, with seven skips (four GPU kernel
   cases and three tests needing Git). The kernel cases are separately exercised in
   the GPU container. Tests cover chunk tails and swaps, silence, resampling,
   model hash rejection, source identity/tamper checks, arbitrary gain, API jobs,
@@ -102,6 +102,21 @@ and parsed a structured missing-model error with its request ID. This validates
 those conventions, not OpenAI speech-endpoint compatibility. Browser checks
 exercised queue position, pending cancellation/deletion and System queue counts.
 Repeat native endpoint checks with `scripts/smoke_public_api.py`.
+
+## Recovery and interface review, 2026-10-30
+
+Runtime ownership, persistence and model processing now live separately from HTTP
+routing. Saved jobs use the same validated settings/output contract as the public
+API. Malformed records are ignored without taking valid history or the service
+offline. Regression tests cover invalid metadata, startup failures, exceptional
+lifespan exits and shutdown during background expiry. Expiry work finishes before
+directory ownership is released; transient filesystem errors retry next interval.
+
+Browser checks cover completed, failed and cancelled history, clearing old audio
+and download actions, player resets, expired jobs and a delayed status response
+arriving after cancellation and input replacement. These checks used Chromium at
+320, 390, 768 and 1440 pixels. The rebuilt full image also passed real offline
+conversion, restoration, separation, split-then-enhance and asynchronous API checks.
 
 ## Remaining qualification limits
 
