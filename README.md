@@ -63,7 +63,9 @@ The tiny image has the same UI and runtime but downloads a model's pinned weight
 
 ## Image publication
 
-The GitHub workflow is configured to publish to `hangrylabs/sidon` and `ghcr.io/hangry-labs/sidon`. These are publication targets; this change does not itself publish images or assert a first release exists. Build locally until a successful publication run is available.
+Rolling images are published to `hangrylabs/sidon` and `ghcr.io/hangry-labs/sidon`
+after successful main builds. Stable releases appear only after their tag build
+and registry verification; see [release preparation](docs/releasing.md).
 
 | Trigger | Full | Tiny | Corresponding sources |
 | --- | --- | --- | --- |
@@ -150,6 +152,10 @@ The project lock uses the CUDA 13.0 PyTorch index explicitly. Docker installs a 
 
 Reviewed dependency fixes and GPU compatibility changes are recorded in the [security review](docs/security.md).
 
+Release preparation follows [the release guide](docs/releasing.md): `task release DRY_RUN=1`
+previews both version transitions; `task release` validates, creates the stable tag
+and next snapshot, then pushes both refs for container publication.
+
 Native installations also need `ffmpeg` and `ffprobe` on PATH for compressed
 exports and additional upload formats. Both are included in the Docker images.
 
@@ -180,8 +186,8 @@ Rolling `latest` and `latest_tiny` images follow `main` after successful
 publication. Stable release tags remain immutable. The snapshot label describes
 development status; it is not a Docker tag.
 
-The following commands use the configured publication targets. Until a successful
-publication run is available, use the [local build commands](#run-locally).
+The following commands use published rolling images. For a local source build,
+use the [local build commands](#run-locally).
 
 **Rolling full image**
 
@@ -222,6 +228,9 @@ here with their source tags and verified full, tiny and source OCI index digests
   FLAC, Opus, MP3, AAC/M4A and Vorbis downloads across all workflows.
 - Add versioned native audio endpoints with OpenAI-style conventions, direct or
   asynchronous responses, bounded FIFO admission, queue timings and safe cancellation.
+- Fix the reviewed dependency advisories with PyTorch 2.14.1 / CUDA 13.0 and
+  refreshed locks, notices and matching sources; validate the actual JIT regression
+  as well as package versions. Add recovery fixes and a tested release task.
 
 </details>
 

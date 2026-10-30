@@ -167,6 +167,42 @@ Performance impact remains inconclusive pending controlled, repeated measurement
 Earlier optimization ratios in performance.md were measured on the original stack
 and are not reasserted for the upgraded stack.
 
+## Pre-release review, 2026-10-30
+
+Release preparation now includes a tested `task release` command, following the
+faster-qwen3-tts-studio process. The dry run exercises stable and next-snapshot
+document/version transformations without writing files or creating refs. Both
+transformed source trees passed version/lock and release-contract checks. Real
+Git tests use disposable local repositories to verify annotated tagging, atomic
+push, restoration after validation failure, and retry after a failed push.
+
+The final preparation tree passed 144 Windows tests (five skips), 139 packaged
+Linux CPU tests (ten skips), six JavaScript tests and all 14 GPU-native tests.
+Linux skips cover GPU kernels and host-Git checks; GPU kernels and real Git
+transitions are exercised separately. The source archive now includes its lock,
+Docker context exclusions and workflow/build inputs needed by its included tests.
+Wheel/source archives were inspected for required notices and excluded private
+files, caches and model weights.
+
+Fresh full/tiny images were inspected directly: installed application files match
+the packaged source; all five baked assets pass their pinned SHA256 checks;
+no user recordings or private workspace files are included. The actual notice
+inventory remains 67 Python and 326 Debian packages, with no missing-notice flags.
+All 721 corresponding-source files verified, and the source manifest's inventory
+hash exactly matches the packaged runtime.
+
+The rebuilt full image passed offline GPU direct/async operations, all three
+model workflows and seven-format conversion/reupload checks, with no mounted
+model cache. The tiny image passed offline conversion with no model loads.
+Authentication, static UI assets and empty queues after job deletion were checked.
+The release guide also rendered in the website preview without browser errors.
+GitHub reported zero open Dependabot and CodeQL alerts at this checkpoint.
+
+These are preparation checks on `1.0.0-snapshot`; the version transition was
+qualified in isolated source copies. No stable tag, release commit or publication
+was performed by this review. Publishing CI must qualify the eventual tagged
+checkout and supply its immutable full/tiny/source digests. See [releasing](releasing.md).
+
 ## Remaining qualification limits
 
 Listening acceptance covers the operator's tested material; a broader controlled
@@ -178,6 +214,9 @@ Other GPUs, operating systems, architectures, multi-tenant isolation and sustain
 production load have not been qualified. The deployment is one shared instance
 with an optional shared API key, rather than a tenant-management product.
 
-No registry image, Docker Hub description, release or Git tag was published by
-this local implementation work. Publication needs configured registry secrets and
-a successful workflow run; stable documentation digests must come from that run.
+The security-updated `main` subsequently passed its
+[publishing workflow](https://github.com/hangry-labs/Sidon/actions/runs/41039867103).
+On 2026-10-30, rolling full, tiny and source OCI indexes matched between Docker
+Hub and GHCR, and all 14 reviewed Dependabot alerts were marked fixed. No stable
+release tag or GitHub Release was created during this qualification. Stable
+documentation digests must come from the eventual stable publication.

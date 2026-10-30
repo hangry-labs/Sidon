@@ -49,6 +49,7 @@ The changed wheel's bundled native libraries and build recipes are checked by
 the corresponding-source policy. Notices, model grants and runtime source
 obligations remain separate; see [licensing](licensing.md).
 
-GitHub alerts are evaluated against the default branch. Local lock updates do not
-change their remote state; they can close after the fixes reach that branch and
-GitHub rescans it.
+GitHub alerts are evaluated against the default branch. After the fixes reached
+`main`, all 14 reviewed alerts were reported as fixed on 2026-10-30. The
+[container publication run](https://github.com/hangry-labs/Sidon/actions/runs/41039867103)
+also succeeded. This is a dated observation, not a claim about future disclosures.

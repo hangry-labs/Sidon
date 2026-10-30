@@ -25,7 +25,7 @@ restoration that helps rough recordings sound their best.”
 
 ## Quick start
 
-The publication workflow targets `hangrylabs/sidon` and `ghcr.io/hangry-labs/sidon`. The following registry commands apply after the first successful image publication; build from source until then.
+**Publication status:** rolling images publish to `hangrylabs/sidon` and `ghcr.io/hangry-labs/sidon` after successful main builds. Stable availability requires a successful tag build and verified registry indexes.
 
 ```bash
 docker run -d --name sidon --gpus all -p 127.0.0.1:7868:7868 -v sidon_data:/app/persistent hangrylabs/sidon:latest

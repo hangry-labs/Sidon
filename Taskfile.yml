@@ -1,5 +1,23 @@
 version: '3'
+vars:
+  DRY_RUN: '{{.DRY_RUN | default "0"}}'
 tasks:
+  validate:
+    desc: Check source, release transitions and publication policy without loading models
+    dir: '{{.TASKFILE_DIR}}'
+    cmds:
+      - uv run --no-project --python 3.13 python -m compileall -q src scripts
+      - uv run --no-project --python 3.13 --with pytest==9.0.3 --with packaging python -m pytest tests/test_packaging.py tests/test_ci_images.py tests/test_release.py tests/test_notice_hints.py tests/test_runtime_sources.py tests/test_pages.py tests/test_pages_server.py -q -p no:cacheprovider
+      - node --test tests/ui/*.test.mjs
+      - uv lock --check
+  release:
+    desc: Validate, commit and tag the release, start the next snapshot, then atomically push main and tag
+    dir: '{{.TASKFILE_DIR}}'
+    vars:
+      NEXT_VERSION: '{{.NEXT_VERSION | default ""}}'
+      SKIP_VALIDATION: '{{.SKIP_VALIDATION | default "0"}}'
+    cmds:
+      - pwsh -NoProfile -File scripts/release.ps1 -DryRun '{{.DRY_RUN}}' -NextVersion '{{.NEXT_VERSION}}' -SkipValidation '{{.SKIP_VALIDATION}}'
   setup:
     cmds: [uv sync --locked]
   test:

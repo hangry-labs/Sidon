@@ -95,6 +95,7 @@ COPY tests/ ./tests/
 COPY scripts/ ./scripts/
 COPY requirements.runtime.in Dockerfile uv.lock ./
 COPY .github/workflows/docker-build.yml ./.github/workflows/docker-build.yml
+COPY docs/dockerhub.md ./docs/
 RUN python -m pip install --only-binary=:all: pytest==9.0.3
 RUN --network=none python -m pytest -q -p no:cacheprovider tests
 

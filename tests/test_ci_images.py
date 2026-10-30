@@ -48,6 +48,8 @@ def test_unsupported_or_injected_publication_identity_fails(event, ref, tag, lat
 @pytest.mark.skipif(shutil.which('git') is None, reason='Git identity is exercised by source CI; runtime omits Git')
 def test_manual_release_must_build_the_actual_git_tag(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
+    (tmp_path / 'VERSION').write_text('1.0\n')
+    (tmp_path / 'pyproject.toml').write_text('[project]\nversion = "1.0.0"\n')
     assert run('git', 'init', '--quiet').returncode == 0
     def commit(message):
         result = run('git', '-c', 'user.name=CI test', '-c', 'user.email=ci@example.invalid',
@@ -60,6 +62,15 @@ def test_manual_release_must_build_the_actual_git_tag(tmp_path, monkeypatch):
     commit('next snapshot')
     with pytest.raises(ValueError, match='selected commit'):
         check_release_checkout(plan)
+
+
+def test_stable_tag_cannot_disguise_snapshot_package(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / 'VERSION').write_text('1.0.0-snapshot\n')
+    (tmp_path / 'pyproject.toml').write_text('[project]\nversion = "1.0.0.dev0"\n')
+    with patch('scripts.ci_images.run', return_value=CompletedProcess([], 0, 'a'*40, '')):
+        with pytest.raises(ValueError, match='matching stable'):
+            check_release_checkout(plan_images('push', 'refs/tags/v1.0.0'))
 
 
 def test_existing_stable_tag_is_never_overwritten():

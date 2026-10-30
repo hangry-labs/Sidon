@@ -43,7 +43,7 @@ sources = ["src"]
 "RUNTIME_NOTICES.md" = "sidon/inference/NOTICE.md"
 
 [tool.hatch.build.targets.sdist]
-only-include = ["src/sidon", "pyproject.toml", "README.md", "LICENSE", "RUNTIME_NOTICES.md", "THIRD_PARTY_NOTICES.md", "licenses", "docs", "tests", "scripts", "requirements.runtime.in", "requirements.runtime.txt", "Dockerfile", "compose.yaml", "VERSION", "Taskfile.yml", "_config.yml", "site", "examples"]
+only-include = ["src/sidon", "pyproject.toml", "uv.lock", "README.md", "LICENSE", "RUNTIME_NOTICES.md", "THIRD_PARTY_NOTICES.md", "licenses", "docs", "tests", "scripts", "requirements.runtime.in", "requirements.runtime.txt", "Dockerfile", "compose.yaml", "VERSION", "Taskfile.yml", ".dockerignore", ".gitignore", ".python-version", ".github", "_config.yml", "site", "examples"]
 
 [dependency-groups]
 dev = ["pytest==9.0.3", "build>=1.3", "httpx==0.28.1"]

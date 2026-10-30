@@ -11,6 +11,7 @@ from pathlib import Path
 import re
 import subprocess
 import time
+import tomllib
 
 REGISTRIES = ('hangrylabs/sidon',
               'ghcr.io/hangry-labs/sidon')
@@ -71,6 +72,11 @@ def check_release_checkout(plan: dict):
     head = run('git', 'rev-parse', 'HEAD')
     if tagged.returncode or head.returncode or tagged.stdout.strip() != head.stdout.strip():
         raise ValueError('The selected commit must match the existing stable Git tag. Create/check the release tag first.')
+    display = plan['release_tag'].removeprefix('v')
+    package = display + '.0' if display.count('.') == 1 else display
+    if (Path('VERSION').read_text(encoding='utf-8').strip() != display or
+            tomllib.loads(Path('pyproject.toml').read_text(encoding='utf-8'))['project']['version'] != package):
+        raise ValueError('Stable image tags require matching stable runtime/package versions, not a snapshot checkout.')
 
 
 def check_unpublished(plan: dict):
