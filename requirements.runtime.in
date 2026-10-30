@@ -1,8 +1,8 @@
-# Qualified CPython 3.13 / Linux x86-64 / NVIDIA CUDA 12.8 runtime.
---extra-index-url https://download.pytorch.org/whl/cu128
-torch==2.10.0+cu128
-triton==3.6.0
-torchaudio==2.10.0+cu128
+# CPython 3.13 / Linux x86-64 / NVIDIA CUDA 13.0 runtime.
+--extra-index-url https://download.pytorch.org/whl/cu130
+torch==2.14.1+cu130
+triton==3.8.0
+torchaudio==2.11.1
 numpy==2.5.4
 scipy==1.18.1
 soundfile==0.14.0

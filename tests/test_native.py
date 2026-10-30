@@ -1,10 +1,34 @@
 # SPDX-License-Identifier: Apache-2.0
 import importlib.util
+import subprocess
+import sys
 import numpy as np
 import pytest
 import torch
 
 from sidon.inference.native import AdaptiveEncoder, NATIVE_MIN_FRAMES, fold_lora, fp32_execution, relative_bias
+
+
+def test_jit_rejects_malformed_container_annotation_in_a_child_process(tmp_path):
+    # GHSA-rrmf-rvhw-rf47: 2.13.0 was listed as fixed but still crashed.
+    # A child process makes a future compiler regression fail this test safely.
+    script = tmp_path / 'jit_annotation.py'
+    script.write_text('''import torch
+try:
+    @torch.jit.script
+    class InvalidAnnotation:
+        def __init__(self):
+            self.items: list = []
+except RuntimeError as exc:
+    assert 'without a contained type' in str(exc), str(exc)
+    print('annotation rejected')
+else:
+    raise AssertionError('Malformed annotation was accepted')
+''', encoding='utf-8')
+    result = subprocess.run([sys.executable, '-X', 'faulthandler', str(script)],
+                            capture_output=True, text=True, encoding='utf-8', timeout=45)
+    assert result.returncode == 0, result.stderr
+    assert 'annotation rejected' in result.stdout
 
 
 def test_folded_adapter_matches_unfolded_forward_without_autocast():

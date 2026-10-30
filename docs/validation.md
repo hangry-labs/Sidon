@@ -5,8 +5,8 @@ runtime. It is not a perceptual restoration benchmark or a production load test.
 
 ## Runtime and audio
 
-- Windows development environment: Python 3.13.13, PyTorch / torchaudio
-  2.10.0+cu128; NVIDIA RTX 5070 Ti.
+- Security-updated Windows development environment: Python 3.13.13,
+  PyTorch 2.14.1+cu130 / torchaudio 2.11.1; NVIDIA RTX 5070 Ti.
 - Linux x86-64 Docker images built from the pinned Python 3.13 base and fully
   hashed runtime requirements. `pip check` passed in full and tiny images.
 - Full image: all three real-model API workflows completed with Docker networking
@@ -31,11 +31,11 @@ loading, concurrent GPU use and compiler warm-up affect elapsed time.
 
 ## Tests and interface
 
-- 120 tests passed on the Windows Python 3.13 environment, with five skips
+- 123 tests passed on the Windows Python 3.13 environment, with five skips
   (four CUDA/Triton cases and one unavailable symlink case).
-- All 13 native-backend tests passed separately in the Linux GPU container,
+- All 14 native-backend tests passed separately in the Linux GPU container,
   including four bit-exact fused-kernel cases and initialization fallback checks.
-- The packaged Linux CPU runtime passed 118 tests, with seven skips (four GPU kernel
+- The packaged Linux CPU runtime passed 121 tests, with seven skips (four GPU kernel
   cases and three tests needing Git). The kernel cases are separately exercised in
   the GPU container. Tests cover chunk tails and swaps, silence, resampling,
   model hash rejection, source identity/tamper checks, arbitrary gain, API jobs,
@@ -49,14 +49,14 @@ loading, concurrent GPU use and compiler warm-up affect elapsed time.
 
 ## Distribution evidence
 
-The runtime collector records 66 Python distributions and 326 Debian packages,
+The runtime collector records 67 Python distributions and 326 Debian packages,
 with no missing-notice flags. Metadata omissions were checked against included
 license texts; notably pathspec's MPL-2.0 notice is supplied with its matching
 source despite its empty license metadata. The source target checks exact Debian
 source identities and reviewed wheel native hashes, downloads matching sources,
 and verifies sizes and SHA256 values before marking its manifest complete.
 
-The current image's source manifest contains 719 verified files, including
+The current image's source manifest contains 721 verified files, including
 FFmpeg/codecs and the compiler/header sources needed for the local Triton launcher. Original
 audio.cpp conversion attribution is retained alongside the other source notices.
 
@@ -118,10 +118,60 @@ arriving after cancellation and input replacement. These checks used Chromium at
 320, 390, 768 and 1440 pixels. The rebuilt full image also passed real offline
 conversion, restoration, separation, split-then-enhance and asynchronous API checks.
 
+## Dependency security follow-up, 2026-10-30
+
+Both dependency locks were audited after the [security fixes](security.md):
+66 development-lock packages and 65 runtime-lock packages reported no known
+advisories. The audit uses the public package version for CUDA-local wheel
+versions; the actual installed wheel is separately hash locked and tested.
+
+The PyTorch 2.13.0+cu130 candidate still crashed on the upstream malformed JIT
+annotation reproducer despite the advisory marking that version as fixed.
+PyTorch 2.14.1+cu130 safely rejects it on Windows and Linux. The new child-process
+regression test checks that behavior. The final stack uses TorchAudio 2.11.1 and
+Triton 3.8.0 with a CUDA 13-compatible host driver.
+
+Final full-image checks, without networking or a mounted model cache, exercised
+all four versioned operations, asynchronous jobs, all seven format round trips
+and real GPU models. CPU restoration also passed using the baked CPU exports.
+The tiny image passed offline conversion without loading/downloading models.
+The full corresponding-source image verified all 721 files. Its notice inventory
+has 67 Python distributions and 326 Debian packages with no missing-notice flags.
+The dependency-only CUDA metapackage is recorded explicitly, with exact metadata
+and payload checks; it is not assigned an invented software license.
+
+One public 7.704-second speech sample and a threefold repeat were compared with
+the earlier PyTorch 2.10/CUDA 12.8 stack. Sampled filterbank features matched
+exactly; output lengths and finite samples were preserved. Restoration difference
+SNR was 51.8 dB and 55.7 dB for the short and repeated clips; separation difference
+SNR was 55.7 dB. The operator subsequently listened in the updated Docker build
+and confirmed that quality was still fine on the tested material. This is informal
+listening acceptance limited to that material; the outputs remain numerically
+different.
+
+A separate sequential timing check used the same RTX 5070 Ti, ten CPU threads,
+adaptive backend and instrumented benchmark script. Each length had one cold
+call followed by three warmed calls; the table reports warmed medians:
+
+| Input duration | PyTorch 2.10 / CUDA 12.8 | PyTorch 2.14.1 / CUDA 13.0 |
+| --- | --- | --- |
+| 7.704 seconds | 66.45 ms | 77.15 ms |
+| 23.112 seconds | 217.96 ms | 245.09 ms |
+
+This run's medians differed by about 16% and 12% (roughly 11 ms and 27 ms).
+The workstation and GPU were shared with other local workloads; background
+traffic, contention and clock variation were not controlled. These observations
+do not establish a repeatable slowdown or attribute the difference to the upgrade.
+The operator explicitly noted local traffic/noise as a possible explanation.
+Performance impact remains inconclusive pending controlled, repeated measurements.
+Earlier optimization ratios in performance.md were measured on the original stack
+and are not reasserted for the upgraded stack.
+
 ## Remaining qualification limits
 
-Quality on representative generated voices still needs listening comparisons.
-Model checks used the short real speech fixture, including repeated input up to
+Listening acceptance covers the operator's tested material; a broader controlled
+perceptual evaluation has not been performed. Model checks used the short real
+speech fixture, including repeated input up to
 32 seconds for the [performance follow-up](performance.md). Long-input paths and
 speaker permutations have unit coverage, without a long-form listening study.
 Other GPUs, operating systems, architectures, multi-tenant isolation and sustained

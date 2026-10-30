@@ -31,7 +31,7 @@ The publication workflow targets `hangrylabs/sidon` and `ghcr.io/hangry-labs/sid
 docker run -d --name sidon --gpus all -p 127.0.0.1:7868:7868 -v sidon_data:/app/persistent hangrylabs/sidon:latest
 ```
 
-Open **http://localhost:7868**. Linux x86-64, Python 3.13, PyTorch 2.10 / CUDA 12.8. Full images bake all pinned CPU/CUDA weights and work offline. NVIDIA use needs host GPU/container support. For CPU, omit `--gpus all` and add `-e SIDON_DEVICE=cpu`.
+Open **http://localhost:7868**. Linux x86-64, Python 3.13, PyTorch 2.14 / CUDA 13.0. Full images bake all pinned CPU/CUDA weights and work offline. NVIDIA use needs a CUDA 13-compatible host driver and container support. For CPU, omit `--gpus all` and add `-e SIDON_DEVICE=cpu`.
 
 ## Tiny image
 

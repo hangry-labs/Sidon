@@ -23,7 +23,7 @@ docker build --target baked -t sidon:local .
 docker run -d --name sidon --gpus all -p 127.0.0.1:7868:7868 -v sidon_data:/app/persistent sidon:local
 ```
 
-Open **http://localhost:7868**. NVIDIA GPU support requires a compatible host driver and NVIDIA container support. The image targets **Linux x86-64, Python 3.13 and CUDA 12.8 / PyTorch 2.10**. It can also run on CPU: omit `--gpus all` and add `-e SIDON_DEVICE=cpu`. CPU processing is slower.
+Open **http://localhost:7868**. NVIDIA GPU support requires a CUDA 13-compatible host driver and NVIDIA container support. The image targets **Linux x86-64, Python 3.13 and CUDA 13.0 / PyTorch 2.14**. It can also run on CPU: omit `--gpus all` and add `-e SIDON_DEVICE=cpu`. CPU processing is slower.
 
 On supported CUDA systems, automatic restoration selects an optimized F32 path:
 a fused vocoder activation for all clips, plus a folded encoder and strict F32
@@ -146,7 +146,9 @@ uv run --locked sidon-studio
 uv run --locked pytest -q
 ```
 
-The project lock uses the CUDA 12.8 PyTorch index explicitly. Docker installs a separate fully hashed Linux/CPython 3.13 runtime lock. Regenerate it with `pwsh -File scripts/lock-runtime.ps1`; check it with `-Check 1`. `Taskfile.yml` provides matching setup, studio, test and image tasks.
+The project lock uses the CUDA 13.0 PyTorch index explicitly. Docker installs a separate fully hashed Linux/CPython 3.13 runtime lock. Regenerate it with `pwsh -File scripts/lock-runtime.ps1`; check it with `-Check 1`. `Taskfile.yml` provides matching setup, studio, test and image tasks.
+
+Reviewed dependency fixes and GPU compatibility changes are recorded in the [security review](docs/security.md).
 
 Native installations also need `ffmpeg` and `ffprobe` on PATH for compressed
 exports and additional upload formats. Both are included in the Docker images.
@@ -206,7 +208,7 @@ here with their source tags and verified full, tiny and source OCI index digests
   by enhancement through the browser studio and audio-job API.
 - Add original/result waveform players, float WAV and 24-bit FLAC downloads,
   ZIP manifests, retained-job history, model residency controls and GPU telemetry.
-- Package Python 3.13, PyTorch 2.10 and CUDA 12.8 with locked runtime dependencies,
+- Package Python 3.13, PyTorch 2.14 and CUDA 13.0 with locked runtime dependencies,
   checksum-verified model assets, full/tiny images and matching source images.
 - Preserve component notices and corresponding sources alongside Apache-2.0
   project contributions and retained upstream licenses.

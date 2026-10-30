@@ -19,17 +19,38 @@ import subprocess
 import sys
 
 SUPPLEMENTAL_APACHE = set()
-SUPPLEMENTAL_BUNDLED = {('torch', '2.10.0+cu128')}
+SUPPLEMENTAL_BUNDLED = {('torch', '2.14.1+cu130')}
+# Publisher explicitly describes this exact wheel as dependency metadata only.
+# Do not extend this exception to wheels containing implementation or binaries.
+METADATA_ONLY = {('cuda-toolkit', '13.0.3.0'):
+                 ('cuda_toolkit-13.0.3.0.dist-info', '3e28bf0013ae8db8cf863ae392897248f4a1ff6c946fe966547fd4b6c44c0057')}
 
 
-def supplemental_notice(name: str, version: str, document: Path) -> str:
+def supplemental_notice(name: str, version: str, document: Path, *, metadata_only=False) -> str:
     normalized = re.sub(r'[-_.]+', '-', name).lower()
-    if (normalized, version) in SUPPLEMENTAL_APACHE | SUPPLEMENTAL_BUNDLED and document.is_file():
+    reviewed = (normalized, version) in SUPPLEMENTAL_APACHE | SUPPLEMENTAL_BUNDLED
+    if metadata_only and (normalized, version) in METADATA_ONLY:
+        reviewed = True
+    if reviewed and document.is_file():
         listed_name = normalized
         row = rf'^\| {re.escape(listed_name)} {re.escape(version)} \|'
         if re.search(row, document.read_text(encoding='utf-8'), re.M):
             return 'THIRD_PARTY_NOTICES.md#supplemental-notices-for-installed-wheels'
     return ''
+
+
+def verified_metadata_only(dist) -> bool:
+    name = re.sub(r'[-_.]+', '-', dist.metadata.get('Name', '')).lower()
+    rule = METADATA_ONLY.get((name, dist.version))
+    if not rule or not dist.files:
+        return False
+    directory, expected = rule
+    allowed = {'METADATA', 'WHEEL', 'RECORD', 'INSTALLER', 'REQUESTED'}
+    entries = [PurePosixPath(str(entry).replace('\\', '/')) for entry in dist.files]
+    if any(entry.parent.as_posix() != directory or entry.name not in allowed for entry in entries):
+        return False
+    metadata_path = Path(dist.locate_file(directory + '/METADATA'))
+    return metadata_path.is_file() and file_sha256(metadata_path) == expected
 
 
 def notice_name(path: str) -> bool:
@@ -102,7 +123,14 @@ def collect_python(output: Path) -> list[dict]:
             sha = save_notice(source, destination)
             license_hints.update(notice_license_hints(source.read_text(encoding="utf-8", errors="replace")))
             notices.append({"file": destination.relative_to(output).as_posix(), "sha256": sha})
-        supplemental = supplemental_notice(name, dist.version, supplement)
+        metadata_only = verified_metadata_only(dist)
+        metadata_evidence = None
+        if metadata_only:
+            relative = METADATA_ONLY[(re.sub(r'[-_.]+', '-', name).lower(), dist.version)][0] + '/METADATA'
+            target = output / 'python' / slug / relative
+            digest = save_notice(Path(dist.locate_file(relative)), target)
+            metadata_evidence = dict(file=target.relative_to(output).as_posix(), sha256=digest)
+        supplemental = supplemental_notice(name, dist.version, supplement, metadata_only=metadata_only)
         records.append({
             "name": name, "version": dist.version,
             "declared_license": dist.metadata.get("License-Expression") or dist.metadata.get("License") or "",
@@ -111,6 +139,7 @@ def collect_python(output: Path) -> list[dict]:
             "notice_license_hints": sorted(license_hints),
             "notices": notices, "native_members": native, "native_files": native_files,
             "supplemental_notice": supplemental,
+            "metadata_only": metadata_only, "metadata_evidence": metadata_evidence,
             "review_required": not bool(notices or supplemental),
         })
     return records

@@ -4,6 +4,10 @@ Investigated 2026-10-29 on an RTX 5070 Ti, Python 3.13 and PyTorch 2.10.0+cu128.
 The comparison below profiles our own pipeline before/after a targeted fix. It is
 not a same-machine speed benchmark against an audio.cpp executable.
 
+These measurements describe the original CUDA 12.8 stack. The later security
+upgrade uses PyTorch 2.14.1 / CUDA 13.0; its separate numerical and latency checks
+are recorded in the [security follow-up](validation.md#dependency-security-follow-up-2026-10-30).
+
 ## What audio.cpp changes
 
 Reviewed [audio.cpp revision 1f5dc02](https://github.com/0xShug0/audio.cpp/tree/1f5dc02257379b790fae9f3a0e0d28065d9baf2f):

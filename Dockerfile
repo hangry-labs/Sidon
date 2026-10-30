@@ -93,8 +93,9 @@ COPY --from=source-assets /sources/SHA256SUMS /sources/SHA256SUMS
 FROM app AS checks
 COPY tests/ ./tests/
 COPY scripts/ ./scripts/
-COPY requirements.runtime.in Dockerfile ./
-RUN python -m pip install --only-binary=:all: pytest==8.4.2
+COPY requirements.runtime.in Dockerfile uv.lock ./
+COPY .github/workflows/docker-build.yml ./.github/workflows/docker-build.yml
+RUN python -m pip install --only-binary=:all: pytest==9.0.3
 RUN --network=none python -m pytest -q -p no:cacheprovider tests
 
 FROM app AS tiny

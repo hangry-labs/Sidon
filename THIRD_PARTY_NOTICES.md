@@ -44,11 +44,17 @@ used with the project owner's authorization.
 
 | Package | Bundled component | Notice |
 | --- | --- | --- |
-| torch 2.10.0+cu128 | Intel oneMKL 2024.2.0 | Intel Simplified Software License, reproduced below. |
+| torch 2.14.1+cu130 | Intel oneMKL 2024.2.0 | Intel Simplified Software License, reproduced below. |
+| cuda-toolkit 13.0.3.0 | Dependency-only metapackage | Publisher describes it as containing no software. The reviewed wheel contains only METADATA, WHEEL and RECORD; the inventory retains its exact metadata. Installed CUDA components carry their own NVIDIA notices. |
 
 The pinned PyTorch wheel omits this bundled component's complete notice.
-Build provenance: https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/.ci/docker/common/install_mkl.sh
+Build provenance: https://github.com/pytorch/pytorch/blob/v2.14.1/.ci/docker/common/install_mkl.sh
 License source: https://cdrdv2-public.intel.com/749362/intel-simplified-license-software-october-2022.pdf
+
+CUDA metapackage description: https://pypi.org/project/cuda-toolkit/13.0.3.0/ .
+The collector checks the exact METADATA hash and rejects this exception if any
+implementation files or native payloads appear. This does not assign a license
+to CUDA components or replace their bundled redistribution terms.
 
 ### Intel oneMKL license text
 

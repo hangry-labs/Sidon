@@ -39,7 +39,7 @@ are removed. Historical Git commits are not rewritten by the source cleanup.
 ## Runtime and corresponding sources
 
 `requirements.runtime.txt` locks and hashes the qualified Linux CPython 3.13 / CUDA
-12.8 environment. `uv.lock` supports local development with explicit PyTorch-index
+13.0 environment. `uv.lock` supports local development with explicit PyTorch-index
 selection. The image collector inventories actual installed wheels and Debian
 packages, copies their notices, and hashes bundled native files. See
 [the generated dependency summary](runtime-dependency-licenses.tsv).

@@ -7,11 +7,13 @@
 # a3e6f9769d0c7e91d2d036cf0fdbe5b4bbf18b87 (SoundFile 0.14.0 gitlink).
 
 [wheels."torch"]
-version = "2.10.0+cu128"
+version = "2.14.1+cu130"
 native_pattern = "libgomp"
-sources = ["gcc-8.5.0-28.el8_10.alma.1.src.rpm", "torch-build-cuda.sh", "torch-build-common.sh"]
+sources = ["gcc-8.5.0-28.el8_10.alma.1.src.rpm", "torch-build-common.sh", "torch-repair-wheel.py", "torch-manywheel-Dockerfile", "torch-install-mkl.sh"]
 [wheels."torch".native]
-"torch/lib/libgomp.so.1" = "59badd7c550c340a23d217c37232a4bac6e66a99f47aa273a0a0393bc7c68ddb"
+# Same GNU build ID and identical .text/.rodata as the audited AlmaLinux runtime;
+# PyTorch's new wheel repair changes its RPATH to the CUDA 13 library layout.
+"torch/lib/libgomp.so.1" = "061688b54658fde866d0e5d83f10ac56aaa9b6493d436d2247bdd961bd62c204"
 
 [wheels."numpy"]
 version = "2.5.4"
@@ -125,15 +127,25 @@ url = "https://raw.githubusercontent.com/bastibe/libsndfile-binaries/a3e6f9769d0
 size = 3606
 sha256 = "909b4a795b35f8465cce613852af63a2fcc6e91eb4aed0e079db43bc149206a9"
 
-[sources."torch-build-cuda.sh"]
-url = "https://raw.githubusercontent.com/pytorch/pytorch/v2.10.0/.ci/manywheel/build_cuda.sh"
-size = 13594
-sha256 = "1c926666e98daaf89c6ed16a79cb07a3ea96dba61f367cb5614323117033daee"
-
 [sources."torch-build-common.sh"]
-url = "https://raw.githubusercontent.com/pytorch/pytorch/v2.10.0/.ci/manywheel/build_common.sh"
-size = 16622
-sha256 = "27d71a70e1a4788dc2bbf8f69b7a542249abe2980b11840e7626636c030217cd"
+url = "https://raw.githubusercontent.com/pytorch/pytorch/v2.14.1/.ci/manywheel/build_common.sh"
+size = 17282
+sha256 = "8045af01af7e4aaead997809f23c88e90384b62658968bcf590df283b45d855d"
+
+[sources."torch-repair-wheel.py"]
+url = "https://raw.githubusercontent.com/pytorch/pytorch/v2.14.1/.ci/manywheel/repair_wheel.py"
+size = 19797
+sha256 = "1a32ff030461014d443adf1b4c298bbeab78a89ee9cd5164d214d0bf7de57db5"
+
+[sources."torch-manywheel-Dockerfile"]
+url = "https://raw.githubusercontent.com/pytorch/pytorch/v2.14.1/.ci/docker/manywheel/Dockerfile_2_28"
+size = 9503
+sha256 = "1b632d341423eb0a1046e161735bc82d07abdc316933c49c7cb0ebb62ae87944"
+
+[sources."torch-install-mkl.sh"]
+url = "https://raw.githubusercontent.com/pytorch/pytorch/v2.14.1/.ci/docker/common/install_mkl.sh"
+size = 520
+sha256 = "438368adc8934f2f65219af639d911eace2b6e9e42b19c204b4acd0faca1132d"
 
 [wheels."pathspec"]
 version = "1.1.1"

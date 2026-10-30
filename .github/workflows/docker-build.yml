@@ -41,7 +41,7 @@ jobs:
           enable-cache: false
       - name: Check immutable publication rules and runtime lock
         run: |
-          uv run --no-project --python 3.13 --with pytest==8.4.2 python -m pytest tests/test_ci_images.py tests/test_packaging.py -q -p no:cacheprovider
+          uv run --no-project --python 3.13 --with pytest==9.0.3 python -m pytest tests/test_ci_images.py tests/test_packaging.py -q -p no:cacheprovider
           pwsh -NoProfile -File scripts/lock-runtime.ps1 -Check 1
       - name: Build Python distributions
         run: uv build
