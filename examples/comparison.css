@@ -1,0 +1,7 @@
+/* SPDX-License-Identifier: Apache-2.0 */
+.audio-comparison { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1.25rem; margin:2rem 0; }
+.comparison-card { min-width:0; padding:1.5rem; border:1px solid #ffffff24; border-radius:16px; background:#111820c9; }
+.audio-comparison .comparison-card h3 { margin:.6rem 0; padding:0; border:0; }
+.comparison-label { color:#f5b45b; font-size:.8rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
+.comparison-card audio { display:block; width:100%; margin:1.25rem 0; }
+@media(max-width:700px) { .audio-comparison { grid-template-columns:minmax(0,1fr); } .comparison-card { padding:1rem; } }

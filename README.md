@@ -1,4 +1,6 @@
-<p align="center"><img src="src/sidon/web/static/assets/sidon-wordmark.svg" width="560" alt="Sidon · Voice restoration studio"></p>
+<p align="center"><img src="docs/assets/sidon-wordmark.svg" width="560" alt="Sidon · Voice restoration studio"></p>
+
+<p align="center"><a href="https://hangry-labs.github.io/Sidon/examples/?lang=en"><strong>🎧 Hear the before-and-after comparison</strong></a></p>
 
 # Sidon
 
@@ -7,6 +9,11 @@ Development snapshot for **v0.1.0**. See the [version history](#version-history)
 Restore noisy or degraded speech, split a two-speaker mixture, and listen to the results in a local Hangry Labs studio. One Docker container serves the browser UI, audio-job API and models.
 
 This is an inference-focused fork of [sarulab-speech/Sidon](https://github.com/sarulab-speech/Sidon). It uses Sidon's single-speaker restoration exports and Apache-licensed MossFormer2 for separation. Training and dataset preparation are outside this product's scope.
+
+The [project website](https://hangry-labs.github.io/Sidon/) presents this README
+and the documentation in the shared Hangry Labs theme. Its
+[listening examples](https://hangry-labs.github.io/Sidon/examples/?lang=en) compare
+three low-quality VoxCPMTTS outputs with their recordings after Sidon restoration.
 
 ## Run locally
 
@@ -114,6 +121,10 @@ uv run --locked pytest -q
 ```
 
 The project lock uses the CUDA 12.8 PyTorch index explicitly. Docker installs a separate fully hashed Linux/CPython 3.13 runtime lock. Regenerate it with `pwsh -File scripts/lock-runtime.ps1`; check it with `-Check 1`. `Taskfile.yml` provides matching setup, studio, test and image tasks.
+
+Preview the README-driven project website with `task pages`, or build it with
+`task pages-build`. The separate static-site builder uses no inference models or
+GPU. See the [website guide](site/README.md) for preview and Pages configuration.
 
 The separation CLI remains available:
 

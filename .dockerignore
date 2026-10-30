@@ -22,3 +22,7 @@ build
 *.flac
 *.mp3
 .ci-build
+site
+examples
+_site
+.jekyll-cache

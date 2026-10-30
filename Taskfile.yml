@@ -20,3 +20,14 @@ tasks:
     cmds: [docker compose up -d --build]
   down:
     cmds: [docker compose down]
+  pages-build:
+    desc: Build the README website with the shared Hangry Labs theme
+    cmds: [pwsh -NoProfile -File scripts/pages.ps1 build]
+  pages:
+    desc: Preview the project website at http://127.0.0.1:9005/Sidon/
+    cmds: [pwsh -NoProfile -File scripts/pages.ps1 preview]
+  pages-test:
+    desc: Check public-source staging and shared website routing
+    cmds:
+      - uv run --locked python -m pytest tests/test_pages.py tests/test_pages_server.py -q
+      - node --test tests/ui/pages-language.test.mjs

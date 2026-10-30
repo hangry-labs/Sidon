@@ -5,6 +5,7 @@ The following third-party grants and notices remain in effect:
 
 | Material | License and preserved notice |
 |---|---|
+| Shared Hangry Labs Pages theme | Apache-2.0; copyright 2026 Hangry Labs, copied from faster-qwen3-tts-studio; complete notice in site/theme/LICENSE |
 | Original Sidon project attribution | MIT; copyright (c) 2025 sarulab-speech, in [licenses/Sidon-upstream-MIT.txt](licenses/Sidon-upstream-MIT.txt) |
 | Selected ClearerVoice-Studio MossFormer2 architecture | Apache-2.0; [licenses/ClearerVoice-Apache-2.0.txt](licenses/ClearerVoice-Apache-2.0.txt) |
 | SpeechBrain-derived dual-path model portions | Apache-2.0; [licenses/SpeechBrain-Apache-2.0.txt](licenses/SpeechBrain-Apache-2.0.txt) |

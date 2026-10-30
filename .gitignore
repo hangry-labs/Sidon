@@ -33,3 +33,12 @@ outputs/
 *.flac
 *.mp3
 *.mp4
+*.opus
+*.ogg
+
+# Reviewed public listening samples only; other audio remains ignored.
+!examples/audio/voxcpmtts-sample-[123]-before-restoration-low-quality.opus
+!examples/audio/voxcpmtts-sample-[123]-after-sidon-restoration.opus
+.jekyll-cache/
+.jekyll-metadata
+_site/

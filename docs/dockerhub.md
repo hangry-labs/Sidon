@@ -2,6 +2,13 @@
 
 Local voice restoration and two-speaker separation, with a browser studio and audio-job API in one container.
 
+**[🎧 Hear the before-and-after comparison](https://hangry-labs.github.io/Sidon/examples/?lang=en)**
+· [Project website and documentation](https://hangry-labs.github.io/Sidon/)
+
+Listen to three VoxCPMTTS samples before and after Sidon restoration, using the
+same spoken text: “Give your voice a cleaner finish with Sidon, local audio
+restoration that helps rough recordings sound their best.”
+
 - **Enhance:** restore noisy or degraded single-speaker speech at 48 kHz.
 - **Split:** get two 16 kHz speaker tracks with MossFormer2.
 - **Split, then enhance:** restore both separated tracks at 48 kHz.

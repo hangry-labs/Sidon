@@ -1,0 +1,19 @@
+---
+title: Sidon documentation
+permalink: /docs/
+---
+
+# Sidon documentation
+
+Start with the [studio overview and local quick start](../README.md), or
+[listen to the before-and-after example](../examples/).
+
+- [Performance and precision](performance.md): cold/warm measurements, optimized
+  restoration and reference comparisons.
+- [Runtime validation](validation.md): tested workflows and qualification limits.
+- [Two-speaker separation](mossformer-runtime.md): MossFormer2 behavior and limits.
+- [Docker packaging and publication](docker-packaging.md): image variants,
+  corresponding sources and rebuilds.
+- [Licensing and redistribution](licensing.md): application, model and runtime terms.
+
+The overview includes API examples, configuration and the development history.

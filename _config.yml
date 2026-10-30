@@ -1,0 +1,79 @@
+title: Sidon
+description: Local voice restoration and two-speaker separation from Hangry Labs.
+url: https://hangry-labs.github.io
+baseurl: /Sidon
+repository: hangry-labs/Sidon
+encoding: utf-8
+markdown: kramdown
+highlighter: rouge
+theme: null
+layouts_dir: site/theme/_layouts
+plugins:
+  - jekyll-seo-tag
+  - jekyll-relative-links
+  - jekyll-optional-front-matter
+  - jekyll-readme-index
+  - jekyll-default-layout
+  - jekyll-titles-from-headings
+relative_links:
+  enabled: true
+  collections: true
+kramdown:
+  input: GFM
+  hard_wrap: false
+  parse_block_html: false
+defaults:
+  - scope:
+      path: ""
+    values:
+      layout: default
+      lang: en
+hangry:
+  languages: [en]
+  asset_root: /site/theme/assets/hangry-pages
+  examples_path: /examples/
+  docs_path: /docs/
+  repository_url: https://github.com/hangry-labs/Sidon
+  source_branch: main
+  background: matrix
+exclude:
+  - AGENTS.md
+  - "**/AGENTS.md"
+  - UPSTREAM_ISSUES.md
+  - UPSTREAM_PULL_REQUESTS.md
+  - .ai
+  - .idea
+  - .vscode
+  - .venv
+  - .pytest_cache
+  - .task
+  - .ci-build
+  - .sass-cache
+  - .jekyll-cache
+  - .jekyll-metadata
+  - node_modules
+  - vendor
+  - build
+  - dist
+  - data
+  - outputs
+  - models
+  - docs/internal
+  - scripts
+  - tests
+  - src
+  - infer.py
+  - Dockerfile
+  - compose.yaml
+  - Taskfile.yml
+  - pyproject.toml
+  - uv.lock
+  - VERSION
+  - "requirements.*"
+  - "*.egg-info"
+  - site/Gemfile
+  - site/Gemfile.lock
+  - site/Dockerfile
+  - site/README.md
+  - site/theme/hangry-labs-pages.gemspec
+  - "**/__pycache__"
