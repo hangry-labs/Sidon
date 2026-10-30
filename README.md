@@ -4,7 +4,8 @@
 
 # Sidon
 
-Development snapshot for **v0.1.0**. See the [version history](#version-history).
+Development version **v1.0.0-snapshot**, targeting the first **v1.0.0** release.
+See the [version history](#version-history).
 
 Restore noisy or degraded speech, split a two-speaker mixture, and listen to the results in a local Hangry Labs studio. One Docker container serves the browser UI, audio-job API and models.
 
@@ -144,11 +145,11 @@ see [performance notes](docs/performance.md).
 ## Version History
 
 <details open markdown="1">
-<summary><strong>v0.1.0 development notes</strong></summary>
+<summary><strong>v1.0.0-snapshot development notes</strong></summary>
 
-### v0.1.0 (development)
+### v1.0.0-snapshot
 
-Initial Hangry Labs studio development, with Python package version `0.1.0`.
+Development toward the first `v1.0.0` release, with Python package version `1.0.0.dev0`.
 Rolling `latest` and `latest_tiny` images follow `main` after successful
 publication. Stable release tags remain immutable. The snapshot label describes
 development status; it is not a Docker tag.

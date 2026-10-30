@@ -35,8 +35,8 @@ button:disabled { cursor: not-allowed; opacity: 0.45; }
   display: flex;
   flex-direction: column;
   width: 100%;
-  height: clamp(280px, 30vh, 340px);
-  min-height: 280px;
+  height: 224px;
+  min-height: 224px;
   padding: 22px clamp(20px, 4vw, 56px) 34px;
   overflow: visible;
   background: #08090b;
@@ -228,9 +228,13 @@ pre { overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; padding: 1
 footer { padding: 20px; border-top: 1px solid var(--line-soft); color: var(--muted); font-size: .7rem; text-align: center; }
 :focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
 .brand-copy { bottom: 12px; width: min(550px, 53%); transform: translateX(-50%); } .product-logo { max-height: 190px; } .labs-branding { top: auto; bottom: 24px; transform: none; }
+.brand-copy { bottom: 6px; width: min(520px, 53%); pointer-events: none; }
+.product-logo { object-fit: contain; }
+.brand-nav { z-index: 2; }
 html[data-header-collapsed="true"] .brand-hero { grid-template-columns: auto 46px minmax(0,1fr) auto; } html[data-header-collapsed="true"] .collapsed-mascot { width: 42px; height: 42px; }
 @media(max-width: 1050px) { .brand-copy { bottom: 40px; width: 48%; } .brand-links a { padding: 0 10px; } .brand-nav { gap: 10px; } .runtime-badge { bottom: 12px; } .runtime-copy span { max-width: 170px; } html[data-header-collapsed="true"] .brand-links a { font-size: 0; min-width: 32px; padding: 0 8px; gap: 0; } html[data-header-collapsed="true"] .brand-links a i { font-size: 1rem; } }
-@media(max-width: 760px) { .workspace { grid-template-columns: 1fr; min-height: 0; } .settings-panel { border-right: 0; border-bottom: 1px solid var(--line); } .settings-panel .help { margin-bottom: 0; } .system-view { grid-template-columns: 1fr; } .api-grid { grid-template-columns: 1fr; } .brand-hero { min-height: 280px; height: 280px; padding: 26px 16px; } .brand-nav { justify-content: center; } .brand-links { gap: 5px; } .brand-links a { min-height: 34px; font-size: .7rem; padding: 0 9px; } .brand-copy { bottom: 65px; width: 72%; } .labs-branding { left: 16px; bottom: 12px; } .labs-signature { width: 56px; } .brand-contact { padding: 3px; } .brand-contact-copy { display: none; } .runtime-badge { right: 16px; bottom: 16px; padding: 7px; gap: 7px; } .runtime-copy span { max-width: 150px; } .runtime-version-group { padding-left: 7px; } .runtime-badge strong { font-size: .7rem; }
+@media(max-width: 760px) { .workspace { grid-template-columns: 1fr; min-height: 0; } .settings-panel { border-right: 0; border-bottom: 1px solid var(--line); } .settings-panel .help { margin-bottom: 0; } .system-view { grid-template-columns: 1fr; } .api-grid { grid-template-columns: 1fr; } .brand-hero { min-height: 224px; height: 224px; padding: 18px 16px; } .brand-nav { justify-content: center; } .brand-links { gap: 5px; } .brand-links a { min-height: 34px; font-size: .7rem; padding: 0 9px; } .brand-copy { bottom: 60px; width: min(360px, 72%); } .labs-branding { left: 16px; bottom: 12px; } .labs-signature { width: 56px; } .brand-contact { padding: 3px; } .brand-contact-copy { display: none; } .runtime-badge { right: 16px; bottom: 16px; padding: 7px; gap: 7px; } .runtime-copy span { max-width: 150px; } .runtime-version-group { padding-left: 7px; } .runtime-badge strong { font-size: .7rem; }
 html[data-header-collapsed="true"] .brand-hero { grid-template-columns: auto 32px minmax(0,1fr); gap: 7px; padding: 24px 12px 12px; } html[data-header-collapsed="true"] .brand-hero .labs-branding { grid-template-columns: 28px 34px; gap: 5px; } html[data-header-collapsed="true"] .brand-hero .labs-signature, html[data-header-collapsed="true"] .brand-hero .labs-logo { width: 34px; height: 34px; } html[data-header-collapsed="true"] .brand-hero .brand-contact { width: 28px; height: 30px; } html[data-header-collapsed="true"] .brand-hero .collapsed-mascot { width: 30px; height: 30px; } html[data-header-collapsed="true"] .brand-hero .brand-nav { grid-column: 3; justify-content: flex-end; } html[data-header-collapsed="true"] .brand-links { gap: 3px; } html[data-header-collapsed="true"] .brand-links a { padding: 0 6px; min-width: 28px; min-height: 30px; } html[data-header-collapsed="true"] .brand-hero .runtime-badge { grid-column: 1 / -1; justify-self: end; max-width: 100%; margin-top: 4px; } html[data-header-collapsed="true"] .brand-hero .runtime-copy span { max-width: 190px; }
 }
 @media(max-width: 440px) { .app-tabs { padding: 0 8px; } .tab-button { min-width: 0; padding: 0 12px; font-size: .75rem; } .panel-toolbar { flex-wrap: wrap; } .charts { grid-template-columns: 1fr; } .document-view { padding: 20px 16px; } .audio-controls-side input { max-width: 46px; } .audio-label { max-width: 65%; } .audio-controls { gap: 7px; } .brand-links a { font-size: .65rem; padding: 0 7px; gap: 4px; } }
+@media(max-width: 440px) { .runtime-badge { max-width: calc(100% - 100px); grid-template-columns: auto minmax(0, 1fr) auto; } .runtime-copy span { max-width: 100%; } }

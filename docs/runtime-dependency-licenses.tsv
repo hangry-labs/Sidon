@@ -51,7 +51,7 @@ PyYAML	6.0.3	MIT	False
 rotary-embedding-torch	0.8.3	MIT	False
 scipy	1.18.1	License :: OSI Approved :: BSD License	False
 setuptools	84.2.1	MIT	False
-sidon	0.1.0	Apache-2.0 AND MIT AND ISC	False
+sidon	1.0.0.dev0	Apache-2.0 AND MIT AND ISC	False
 soundfile	0.14.0	BSD 3-Clause License	False
 starlette	1.10.0	BSD-3-Clause	False
 sympy	1.14.0	BSD	False

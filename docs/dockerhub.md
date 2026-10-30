@@ -1,5 +1,7 @@
 # Sidon · Hangry Labs
 
+Development version **v1.0.0-snapshot**, targeting the first **v1.0.0** release.
+
 Local voice restoration and two-speaker separation, with a browser studio and audio-job API in one container.
 
 **[🎧 Hear the before-and-after comparison](https://hangry-labs.github.io/Sidon/examples/?lang=en)**
