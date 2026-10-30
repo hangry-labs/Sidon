@@ -2,7 +2,7 @@
 
 <p align="center"><a href="https://hangry-labs.github.io/Sidon/examples/?lang=en"><strong>🎧 Hear the before-and-after comparison</strong></a></p>
 
-Development version **v1.0.0-snapshot**, targeting the first **v1.0.0** release.
+Source release **v1.0.0**.
 See the [version history](#version-history).
 
 Restore noisy or degraded speech, split a two-speaker mixture, and listen to the results in a local Hangry Labs studio. One Docker container serves the browser UI, audio-job API and models.
@@ -176,37 +176,29 @@ see [performance notes](docs/performance.md).
 
 ## Version History
 
-<details open markdown="1">
-<summary><strong>v1.0.0-snapshot development notes</strong></summary>
+<details markdown="1">
+<summary><strong>v1.0.0 release notes</strong></summary>
 
-### v1.0.0-snapshot
+### v1.0.0
 
-Development toward the first `v1.0.0` release, with Python package version `1.0.0.dev0`.
-Rolling `latest` and `latest_tiny` images follow `main` after successful
-publication. Stable release tags remain immutable. The snapshot label describes
-development status; it is not a Docker tag.
+Source release `v1.0.0`, Python package `1.0.0`. The source tag triggers
+container publication. Verify full/tiny/source registry indexes before announcing
+availability, then record the top-level OCI digests here. No digest is assumed.
 
-The following commands use published rolling images. For a local source build,
-use the [local build commands](#run-locally).
-
-**Rolling full image**
+**Full image (after successful publication)**
 
 ```bash
-docker run -d --name sidon --restart unless-stopped --gpus all -p 127.0.0.1:7868:7868 -v sidon_data:/app/persistent hangrylabs/sidon:latest
+docker run -d --name sidon --restart unless-stopped --gpus all -p 127.0.0.1:7868:7868 -v sidon_data:/app/persistent hangrylabs/sidon:v1.0.0
 ```
 
-**Rolling tiny image**
+**Tiny image (after successful publication)**
 
 ```bash
-docker run -d --name sidon --restart unless-stopped --gpus all -p 127.0.0.1:7868:7868 -v sidon_data:/app/persistent hangrylabs/sidon:latest_tiny
+docker run -d --name sidon --restart unless-stopped --gpus all -p 127.0.0.1:7868:7868 -v sidon_data:/app/persistent hangrylabs/sidon:v1.0.0_tiny
 ```
 
-Choose full or tiny and reuse the same persistent volume when replacing the
-container. Full includes all pinned weights; tiny downloads them on first use.
-For GHCR, replace `hangrylabs/sidon` with `ghcr.io/hangry-labs/sidon`.
-Matching rolling sources use `latest_sources`; see [source extraction and
-rebuilding](docs/docker-packaging.md). Published stable versions will be recorded
-here with their source tags and verified full, tiny and source OCI index digests.
+Matching sources: `v1.0.0_sources`. For GHCR, replace `hangrylabs/sidon`
+with `ghcr.io/hangry-labs/sidon`. Keep the same persistent volume on upgrades.
 
 - Focus the fork on inference: remove training and dataset-preparation code and
   replace the noncommercial DialogueSidon dependency with MossFormer2 separation.
